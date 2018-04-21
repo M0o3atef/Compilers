@@ -1,0 +1,30 @@
+	push	0
+	pop	x
+	push	2
+	pop	y
+L000:
+	push	x
+	push	3
+	compLT
+	jz	L001
+	push	x
+	print
+	push	x
+	push	2
+	compEQ
+	jz	L002
+	push	x
+	push	2
+	mul
+	pop	y
+	jmp	L003
+L002:
+	push	x
+	push	1
+	add
+	pop	y
+L003:
+	jmp	L000
+L001:
+	push	y
+	print

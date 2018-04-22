@@ -2,29 +2,47 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include "definitions.h"
 
 /* prototypes */
 nodeType *opr(int oper, int nops, ...);
-nodeType *id(int i);
-nodeType *con(int value);
+nodeType* conFloat(double value);
+nodeType *conInt(int value);
+nodeType* conString(char* value);
+int defSym(char* name, int type, bool isVar);
+int getIndex(char* varName);
+nodeType *id(int index);
 void freeNode(nodeType *p);
 int ex(nodeType *p);
 int yylex(void);
 
 void yyerror(char *s);
-int sym[26];                    /* symbol table */
+symbolEntry* sym[MAXNUMOFSYMS];                    /* symbol table */
+int nextSymNum = 0;
+
 %}
 
 %union {
+    double fValue;              /* Floating deciamal value */
     int iValue;                 /* integer value */
-    char sIndex;                /* symbol table index */
+    char* sValue;              /* String value */
+    char* varName;             /* variable Name */
     nodeType *nPtr;             /* node pointer */
 };
 
-%token <iValue> INTEGER
-%token <sIndex> VARIABLE
+%token DEF
+%token AS
+%token VAR
+%token CONST
+%token INT
+%token FLOAT
+%token STRING
+%token <iValue> INTNUM
+%token <fValue> FLOATNUM
+%token <sValue> QUOTESTRING
+%token <varName> IDENTIFIER
 %token WHILE IF PRINT
 %nonassoc IFX
 %nonassoc ELSE
@@ -47,15 +65,20 @@ function:
         | /* NULL */
         ;
 
-stmt:
-          ';'                            { $$ = opr(';', 2, NULL, NULL); }
-        | expr ';'                       { $$ = $1; }
-        | PRINT expr ';'                 { $$ = opr(PRINT, 1, $2); }
-        | VARIABLE '=' expr ';'          { $$ = opr('=', 2, id($1), $3); }
-        | WHILE '(' expr ')' stmt        { $$ = opr(WHILE, 2, $3, $5); }
-        | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
-        | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
-        | '{' stmt_list '}'              { $$ = $2; }
+stmt:   DEF IDENTIFIER AS INT VAR '=' expr ';'           { $$ = opr(DEF, 2, id(defSym($2, 0, True)), $7); }
+        | DEF IDENTIFIER AS FLOAT VAR '=' expr ';'       { $$ = opr(DEF, 2, id(defSym($2, 1, True)), $7); }
+        | DEF IDENTIFIER AS STRING VAR '=' expr ';'      { $$ = opr(DEF, 2, id(defSym($2, 2, True)), $7); }
+        | DEF IDENTIFIER AS INT CONST '=' expr ';'       { $$ = opr(DEF, 2, id(defSym($2, 0, False)), $7); }
+        | DEF IDENTIFIER AS FLOAT CONST '=' expr ';'     { $$ = opr(DEF, 2, id(defSym($2, 1, False)), $7); }
+        | DEF IDENTIFIER AS STRING CONST '=' expr ';'    { $$ = opr(DEF, 2, id(defSym($2, 2, False)), $7); }
+        |  ';'                                           { $$ = opr(';', 2, NULL, NULL); }
+        | expr ';'                                       { $$ = $1; }
+        | PRINT expr ';'                                 { $$ = opr(PRINT, 1, $2); }
+        | IDENTIFIER '=' expr ';'                        { $$ = opr('=', 2, id(getIndex($1)), $3); }
+        | WHILE '(' expr ')' stmt                        { $$ = opr(WHILE, 2, $3, $5); }
+        | IF '(' expr ')' stmt %prec IFX                 { $$ = opr(IF, 2, $3, $5); }
+        | IF '(' expr ')' stmt ELSE stmt                 { $$ = opr(IF, 3, $3, $5, $7); }
+        | '{' stmt_list '}'                              { $$ = $2; }
         ;
 
 stmt_list:
@@ -64,8 +87,10 @@ stmt_list:
         ;
 
 expr:
-          INTEGER               { $$ = con($1); }
-        | VARIABLE              { $$ = id($1); }
+          INTNUM               { $$ = conInt($1); }
+        | FLOATNUM                { $$ = conFloat($1); }
+        | QUOTESTRING                { $$ = conString($1); }
+        | IDENTIFIER              { $$ = id(getIndex($1)); }
         | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
         | expr '+' expr         { $$ = opr('+', 2, $1, $3); }
         | expr '-' expr         { $$ = opr('-', 2, $1, $3); }
@@ -82,7 +107,7 @@ expr:
 
 %%
 
-nodeType *con(int value) {
+nodeType* conFloat(double value){
     nodeType *p;
 
     /* allocate node */
@@ -90,13 +115,73 @@ nodeType *con(int value) {
         yyerror("out of memory");
 
     /* copy information */
-    p->type = typeCon;
-    p->con.value = value;
+    p->type = typeFloatCon;
+    p->con.fValue = value;
+
+    return p;
+} 
+
+nodeType *conInt(int value) {
+    nodeType *p;
+
+    /* allocate node */
+    if ((p = malloc(sizeof(nodeType))) == NULL)
+        yyerror("out of memory");
+
+    /* copy information */
+    p->type = typeIntCon;
+    p->con.iValue = value;
+    printf("Constant integer = %d", p->con.iValue);
+    return p;
+}
+
+nodeType* conString(char* value){
+    nodeType *p;
+
+    /* allocate node */
+    if ((p = malloc(sizeof(nodeType))) == NULL)
+        yyerror("out of memory");
+
+    /* copy information */
+    p->type = typeStringCon;
+    p->con.sValue = value;
 
     return p;
 }
 
-nodeType *id(int i) {
+int defSym(char* name, int type, bool isVar){
+    symbolEntry *s = NULL;
+    if(nextSymNum < MAXNUMOFSYMS)
+        s = malloc(sizeof(symbolEntry));
+    if(s == NULL)
+        yyerror("out of memory");
+    char* endOfFirst = strchr(name, ' ');
+    size_t lengthOfFirst = endOfFirst - name;
+    s->name = (char*)malloc((lengthOfFirst + 1) * sizeof(char));
+    strncpy(s->name, name, lengthOfFirst);
+    s->name[lengthOfFirst] = '\0';
+    s->index = nextSymNum;
+    s->type = type;
+    s->isVar = isVar;
+    sym[nextSymNum] = s;
+    //printf("Defined Symbol %s of type %d at index %d", s->name, s->type, s->index);
+    nextSymNum++;
+    return s->index;
+}
+
+int getIndex(char* varName){
+    int i = 0;
+    while(i < nextSymNum){
+        if(strcmp(sym[i]->name, varName) == 0){
+            printf("Got %s ", varName);
+            printf("Found %s ", sym[i]->name);
+            return sym[i]->index;
+        }
+    }
+    return -1;
+}
+
+nodeType *id(int index) {
     nodeType *p;
 
     /* allocate node */
@@ -105,7 +190,7 @@ nodeType *id(int i) {
 
     /* copy information */
     p->type = typeId;
-    p->id.i = i;
+    p->id.i = index;
 
     return p;
 }

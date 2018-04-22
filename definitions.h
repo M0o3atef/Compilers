@@ -1,8 +1,13 @@
-typedef enum { typeCon, typeId, typeOpr } nodeEnum;
-
+#define MAXNUMOFSYMS 100
+typedef enum { typeIntCon, typeFloatCon, typeStringCon, typeId, typeOpr } nodeEnum;
+typedef enum { False, True } bool;
 /* constants */
 typedef struct {
-    int value;                  /* value of constant */
+    union{
+        int iValue;                  /* integar value of constant */
+        double fValue;               /* double value of constant */
+        char* sValue;               /* string value of constant */
+    };
 } conNodeType;
 
 /* identifiers */
@@ -27,4 +32,11 @@ typedef struct nodeTypeTag {
     };
 } nodeType;
 
-extern int sym[26];
+typedef struct{
+    char* name;
+    int index;
+    int type; // 0 int, 1 float, 2 string
+    bool isVar; // false const, true variable
+}symbolEntry;
+
+extern symbolEntry* sym[MAXNUMOFSYMS];

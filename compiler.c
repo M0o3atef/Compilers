@@ -9,18 +9,30 @@ int ex(nodeType *p) {
 
     if (!p) return 0;
     switch(p->type) {
-    case typeCon:       
-        printf("\tpush\t%d\n", p->con.value); 
+    case typeStringCon:       
+        printf("\tpush\t\"%s\"\n", p->con.sValue); 
+        //printf("String Constant (%s)\n", p->con.sValue);
         break;
-    case typeId:        
-        printf("\tpush\t%c\n", p->id.i + 'a'); 
+    case typeIntCon:
+        printf("\tpush\t%d\n", p->con.iValue);
+        //printf("Int Constant (%d)\n", p->con.iValue);
+        break;
+    case typeFloatCon:
+        printf("\tpush\t%f\n", p->con.fValue);
+        //printf("Float Constant (%f)\n", p->con.fValue);
+        break;
+    case typeId:
+        printf("\tpush\t%c\n", sym[p->id.i]->name);
+        //printf("Variable (%c)\n", p->id.i + 'a');
         break;
     case typeOpr:
         switch(p->opr.oper) {
         case WHILE:
             printf("L%03d:\n", lbl1 = lbl++);
+            //printf("While Loop, Condition: \n");
             ex(p->opr.op[0]);
             printf("\tjz\tL%03d\n", lbl2 = lbl++);
+            //printf("\tWhile Loop, Block: \n");
             ex(p->opr.op[1]);
             printf("\tjmp\tL%03d\n", lbl1);
             printf("L%03d:\n", lbl2);
@@ -48,11 +60,15 @@ int ex(nodeType *p) {
             break;
         case '=':       
             ex(p->opr.op[1]);
-            printf("\tpop\t%c\n", p->opr.op[0]->id.i + 'a');
+            printf("\tpop\t%s\n", sym[p->opr.op[0]->id.i]->name);
             break;
         case UMINUS:    
             ex(p->opr.op[0]);
             printf("\tneg\n");
+            break;
+        case DEF:
+            ex(p->opr.op[1]);
+            printf("\tpop\t%s\n", sym[p->opr.op[0]->id.i]->name);
             break;
         default:
             ex(p->opr.op[0]);

@@ -22,8 +22,8 @@ int ex(nodeType *p) {
         //printf("Float Constant (%f)\n", p->con.fValue);
         break;
     case typeId:
-        printf("\tpush\t%c\n", sym[p->id.i]->name);
-        //printf("Variable (%c)\n", p->id.i + 'a');
+        printf("\tpush\t%s\n", sym[p->id.i]->name);
+        //printf("Variable (%s)\n", p->id.i + 'a');
         break;
     case typeOpr:
         switch(p->opr.oper) {
@@ -54,7 +54,7 @@ int ex(nodeType *p) {
                 printf("L%03d:\n", lbl1);
             }
             break;
-        case PRINT:     
+        case PRINT:
             ex(p->opr.op[0]);
             printf("\tprint\n");
             break;

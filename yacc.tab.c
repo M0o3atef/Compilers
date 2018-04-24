@@ -92,7 +92,7 @@ int yylex(void);
 void yyerror(char *s);
 symbolEntry* sym[MAXNUMOFSYMS];                    /* symbol table */
 int nextSymNum = 0;
-
+//int yydebug=1;
 
 
 /* Line 189 of yacc.c  */
@@ -1947,7 +1947,7 @@ nodeType *conInt(int value) {
     /* copy information */
     p->type = typeIntCon;
     p->con.iValue = value;
-    printf("Constant integer = %d", p->con.iValue);
+    //printf("Constant integer = %d", p->con.iValue);
     return p;
 }
 
@@ -1965,17 +1965,24 @@ nodeType* conString(char* value){
     return p;
 }
 
+char* truncStringAtSpace(char* varChar){
+    char* endOfFirst = strchr(varChar, ' ');
+    if(endOfFirst == NULL)
+        return varChar;
+    size_t lengthOfFirst = endOfFirst - varChar;
+    char* temp = (char*)malloc((lengthOfFirst + 1) * sizeof(char));
+    strncpy(temp, varChar, lengthOfFirst);
+    temp[lengthOfFirst] = '\0';
+    return temp;
+}
+
 int defSym(char* name, int type, bool isVar){
     symbolEntry *s = NULL;
     if(nextSymNum < MAXNUMOFSYMS)
         s = malloc(sizeof(symbolEntry));
     if(s == NULL)
         yyerror("out of memory");
-    char* endOfFirst = strchr(name, ' ');
-    size_t lengthOfFirst = endOfFirst - name;
-    s->name = (char*)malloc((lengthOfFirst + 1) * sizeof(char));
-    strncpy(s->name, name, lengthOfFirst);
-    s->name[lengthOfFirst] = '\0';
+    s->name = truncStringAtSpace(name);
     s->index = nextSymNum;
     s->type = type;
     s->isVar = isVar;
@@ -1986,18 +1993,23 @@ int defSym(char* name, int type, bool isVar){
 }
 
 int getIndex(char* varName){
+    char* temp = truncStringAtSpace(varName);
     int i = 0;
     while(i < nextSymNum){
-        if(strcmp(sym[i]->name, varName) == 0){
-            printf("Got %s ", varName);
-            printf("Found %s ", sym[i]->name);
+        if(strcmp(sym[i]->name, temp) == 0){
+            //printf("Got %s ", temp);
+            //printf("Found %s ", sym[i]->name);
             return sym[i]->index;
         }
+        i++;
     }
+    printf("Symbol %s not Found\n", varName);
     return -1;
 }
 
 nodeType *id(int index) {
+    if(index == -1)
+        return NULL;
     nodeType *p;
 
     /* allocate node */

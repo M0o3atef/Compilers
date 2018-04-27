@@ -21,7 +21,7 @@ int yylex(void);
 void yyerror(char *s);
 symbolEntry* sym[MAXNUMOFSYMS];                    /* symbol table */
 int nextSymNum = 0;
-//int yydebug=1;
+int yydebug=1;
 %}
 
 %union {
@@ -32,18 +32,11 @@ int nextSymNum = 0;
     nodeType *nPtr;             /* node pointer */
 };
 
-%token DEF
-%token AS
-%token VAR
-%token CONST
-%token INT
-%token FLOAT
-%token STRING
 %token <iValue> INTNUM
 %token <fValue> FLOATNUM
 %token <sValue> QUOTESTRING
 %token <varName> IDENTIFIER
-%token WHILE IF PRINT
+%token WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT IF PRINT DEF AS VAR CONST INT FLOAT STRING
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -52,7 +45,7 @@ int nextSymNum = 0;
 %left '*' '/'
 %nonassoc UMINUS
 
-%type <nPtr> stmt expr stmt_list
+%type <nPtr> stmt expr stmt_list case_stmt case_list defult_stmt logic_list logic_expr
 
 %%
 
@@ -65,19 +58,21 @@ function:
         | /* NULL */
         ;
 
-stmt:   DEF IDENTIFIER AS INT VAR '=' expr ';'           { $$ = opr(DEF, 2, id(defSym($2, 0, True)), $7); }
+stmt:     DEF IDENTIFIER AS INT VAR '=' expr ';'         { $$ = opr(DEF, 2, id(defSym($2, 0, True)), $7); }
         | DEF IDENTIFIER AS FLOAT VAR '=' expr ';'       { $$ = opr(DEF, 2, id(defSym($2, 1, True)), $7); }
         | DEF IDENTIFIER AS STRING VAR '=' expr ';'      { $$ = opr(DEF, 2, id(defSym($2, 2, True)), $7); }
         | DEF IDENTIFIER AS INT CONST '=' expr ';'       { $$ = opr(DEF, 2, id(defSym($2, 0, False)), $7); }
         | DEF IDENTIFIER AS FLOAT CONST '=' expr ';'     { $$ = opr(DEF, 2, id(defSym($2, 1, False)), $7); }
         | DEF IDENTIFIER AS STRING CONST '=' expr ';'    { $$ = opr(DEF, 2, id(defSym($2, 2, False)), $7); }
         |  ';'                                           { $$ = opr(';', 2, NULL, NULL); }
-        | expr ';'                                       { $$ = $1; }
         | PRINT expr ';'                                 { $$ = opr(PRINT, 1, $2); }
         | IDENTIFIER '=' expr ';'                        { $$ = opr('=', 2, id(getIndex($1)), $3); }
-        | WHILE '(' expr ')' stmt                        { $$ = opr(WHILE, 2, $3, $5); }
-        | IF '(' expr ')' stmt %prec IFX                 { $$ = opr(IF, 2, $3, $5); }
-        | IF '(' expr ')' stmt ELSE stmt                 { $$ = opr(IF, 3, $3, $5, $7); }
+        | WHILE '(' logic_list ')' stmt                  { $$ = opr(WHILE, 2, $3, $5); }
+        | FOR '(' stmt logic_list  ';' stmt ')' stmt     { $$ = opr(FOR, 4, $3, $4, $6, $8); }
+        | REPEAT stmt UNTIL '(' logic_list ')' ';'       { $$ = opr(REPEAT, 2, $5, $2); }
+        | SWITCH '(' expr ')' case_stmt                  { $$ = opr(REPEAT, 2, $3, $5); }
+        | IF '(' logic_list ')' stmt %prec IFX           { $$ = opr(IF, 2, $3, $5); }
+        | IF '(' logic_list ')' stmt ELSE stmt           { $$ = opr(IF, 3, $3, $5, $7); }
         | '{' stmt_list '}'                              { $$ = $2; }
         ;
 
@@ -86,22 +81,42 @@ stmt_list:
         | stmt_list stmt        { $$ = opr(';', 2, $1, $2); }
         ;
 
-expr:
-          INTNUM               { $$ = conInt($1); }
-        | FLOATNUM                { $$ = conFloat($1); }
-        | QUOTESTRING                { $$ = conString($1); }
-        | IDENTIFIER              { $$ = id(getIndex($1)); }
-        | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
-        | expr '+' expr         { $$ = opr('+', 2, $1, $3); }
-        | expr '-' expr         { $$ = opr('-', 2, $1, $3); }
-        | expr '*' expr         { $$ = opr('*', 2, $1, $3); }
-        | expr '/' expr         { $$ = opr('/', 2, $1, $3); }
-        | expr '<' expr         { $$ = opr('<', 2, $1, $3); }
+defult_stmt: DEFAULT stmt                                { $$ = opr(DEFAULT, 1, $2) }
+        ;
+
+case_stmt:  CASE '(' expr ')' stmt                       { $$ = opr(CASE, 2, $3, $5); }
+        |   '{' case_list '}'                            { $$ = $2; }
+        |   '{' case_list defult_stmt '}'                { $$ = opr(';', 2, $2, $3) }
+        ;
+
+case_list: case_stmt                                     { $$ = $1 }
+        |  case_list case_stmt                           { $$ = opr(';', 2, $1, $2) }
+        ;
+
+
+logic_expr:
+          expr '<' expr         { $$ = opr('<', 2, $1, $3); }
         | expr '>' expr         { $$ = opr('>', 2, $1, $3); }
         | expr GE expr          { $$ = opr(GE, 2, $1, $3); }
         | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
         | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
         | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
+        ;
+
+logic_list:
+            logic_expr                  { $$ = $1 }
+        |   logic_list '&' logic_expr   { $$ = opr('&', 2, $1, $3); }
+        |   logic_list '|' logic_expr   { $$ = opr('|', 2, $1, $3); }
+        ;
+expr:
+          INTNUM                { $$ = conInt($1); }
+        | FLOATNUM              { $$ = conFloat($1); }
+        | QUOTESTRING           { $$ = conString($1); }
+        | IDENTIFIER            { $$ = id(getIndex($1)); }
+        | expr '+' expr         { $$ = opr('+', 2, $1, $3); }
+        | expr '-' expr         { $$ = opr('-', 2, $1, $3); }
+        | expr '*' expr         { $$ = opr('*', 2, $1, $3); }
+        | expr '/' expr         { $$ = opr('/', 2, $1, $3); }
         | '(' expr ')'          { $$ = $2; }
         ;
 
@@ -187,7 +202,7 @@ int getIndex(char* varName){
         }
         i++;
     }
-    printf("Symbol %s not Found\n", varName);
+    //printf("Symbol %s not Found\n", varName);
     return -1;
 }
 
@@ -240,6 +255,11 @@ void freeNode(nodeType *p) {
 
 void yyerror(char *s) {
     fprintf(stdout, "%s\n", s);
+}
+
+int ex(nodeType *p){
+    printf("Well Done, No Errors\n");
+    return 0;
 }
 
 int main(void) {

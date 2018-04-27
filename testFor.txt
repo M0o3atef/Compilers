@@ -1,0 +1,19 @@
+def i as int var = 1;
+repeat {
+	print i;
+} until(i<5);
+for(def i as int var = 1; i < 5; i = i+1;)
+	print i;
+print i;
+switch (i*5-4) {
+	case (5)
+		print "hello";
+	case (6){
+		print "Hi";
+		i = i + 50*4 / 210;
+	}
+	default{
+		print "Default";
+		print "Done";
+	}
+}

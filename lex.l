@@ -13,6 +13,12 @@ void yyerror(char *);
 "=="            { return EQ; }
 "!="            { return NE; }
 "while"         { return WHILE; }
+"for"           { return FOR; }
+"repeat"        { return REPEAT; }
+"until"         { return UNTIL; }
+"switch"        { return SWITCH; }
+"case"          { return CASE; }
+"default"       { return DEFAULT; }
 "if"            { return IF; }
 "else"          { return ELSE; }
 "print"         { return PRINT; }
@@ -51,7 +57,7 @@ void yyerror(char *);
                 return QUOTESTRING;
             }
 
-[-()<>=+*/;{}.] {
+[-()<>=+*/;:{}&|.] {
                 return *yytext;
             }
 

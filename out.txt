@@ -92,7 +92,7 @@ L008:
 	push	1
 	add
 	pop	y
-	jmp	L011
+	jmp	BL011
 L012:
 	push	y
 	push	i
@@ -100,23 +100,18 @@ L012:
 	add
 	compEQ
 	jz	L013
-L014:
-	push	i
-	print
 	push	i
 	push	5
-	compLT
-	jz	L015
-	jmp	L014
-L015:
-	jmp	L011
+	mul
+	push	1
+	sub
+	pop	y
+	jmp	BL011
 L013:
-	push	"Done"
-	print
-L011:
+BL011
 	push	"hello"
 	print
-	jmp	L009
+	jmp	BL009
 L010:
 	push	i
 	push	5
@@ -125,32 +120,32 @@ L010:
 	sub
 	push	6
 	compEQ
-	jz	L016
+	jz	L014
 	push	y
 	push	5
 	compEQ
-	jz	L018
+	jz	L016
 	push	y
 	push	1
 	add
 	pop	y
-	jmp	L017
-L018:
+	jmp	BL015
+L016:
 	push	y
 	push	i
 	push	1
 	add
 	compEQ
-	jz	L019
+	jz	L017
 	push	i
 	push	5
 	mul
 	push	1
 	sub
 	pop	y
-	jmp	L017
-L019:
+	jmp	BL015
 L017:
+BL015
 	push	"Hi"
 	print
 	push	i
@@ -161,12 +156,12 @@ L017:
 	div
 	add
 	pop	i
-	jmp	L009
-L016:
+	jmp	BL009
+L014:
 	push	"Default"
 	print
 	push	"Done"
 	print
-L009:
+BL009
 	push	y
 	print

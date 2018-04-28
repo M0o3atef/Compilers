@@ -100,7 +100,7 @@ int yydebug=1;
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 1
+# define YYDEBUG 0
 #endif
 
 /* Enabling verbose error messages.  */
@@ -1585,7 +1585,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 73 "yacc.y"
-    { (yyval.nPtr) = opr(REPEAT, 2, (yyvsp[(3) - (5)].nPtr), (yyvsp[(5) - (5)].nPtr)); ;}
+    { (yyval.nPtr) = opr(SWITCH, 2, (yyvsp[(3) - (5)].nPtr), (yyvsp[(5) - (5)].nPtr)); ;}
     break;
 
   case 18:
@@ -2142,11 +2142,6 @@ void freeNode(nodeType *p) {
 
 void yyerror(char *s) {
     fprintf(stdout, "%s\n", s);
-}
-
-int ex(nodeType *p){
-    printf("Well Done, No Errors\n");
-    return 0;
 }
 
 int main(void) {

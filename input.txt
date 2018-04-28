@@ -23,9 +23,26 @@ for(def i as int var = 1; i < 5; i = i+1;)
 	print i;
 print i;
 switch (i*5-4) {
-	case (5)
+	case (5){
+		switch(y){
+			case (5)
+				y = y+1;
+			case (i+1)
+				repeat {
+					print i;
+				} until(i<5);
+			default
+				print "Done";
+		}
 		print "hello";
+	}
 	case (6){
+		switch(y){
+			case (5)
+				y = y+1;
+			case (i+1)
+				y = i*5-1;
+		}
 		print "Hi";
 		i = i + 50*4 / 210;
 	}

@@ -37,6 +37,24 @@ int ex(nodeType *p) {
             printf("\tjmp\tL%03d\n", lbl1);
             printf("L%03d:\n", lbl2);
             break;
+        case FOR:
+            ex(p->opr.op[0]);
+            printf("L%03d:\n", lbl1 = lbl++);
+            ex(p->opr.op[1]);
+            printf("\tjz\tL%03d\n", lbl2 = lbl++);
+            ex(p->opr.op[3]);
+            ex(p->opr.op[2]);
+            printf("\tjmp\tL%03d\n", lbl1);
+            printf("L%03d:\n", lbl2);
+            break;
+        case REPEAT:
+            printf("L%03d:\n", lbl1 = lbl++);
+            ex(p->opr.op[1]); //execute block
+            ex(p->opr.op[0]); //execute logic
+            printf("\tjz\tL%03d\n", lbl2 = lbl++);
+            printf("\tjmp\tL%03d\n", lbl1);
+            printf("L%03d:\n", lbl2);
+            break;
         case IF:
             ex(p->opr.op[0]);
             if (p->opr.nops > 2) {
@@ -54,17 +72,17 @@ int ex(nodeType *p) {
                 printf("L%03d:\n", lbl1);
             }
             break;
+        case SWITCH:
+            exCase(p->opr.op[1], p->opr.op[0], lbl2 = lbl++);
+            printf("L%03d:\n", lbl2);
+            break;
         case PRINT:
             ex(p->opr.op[0]);
             printf("\tprint\n");
             break;
-        case '=':       
+        case '=':
             ex(p->opr.op[1]);
             printf("\tpop\t%s\n", sym[p->opr.op[0]->id.i]->name);
-            break;
-        case UMINUS:    
-            ex(p->opr.op[0]);
-            printf("\tneg\n");
             break;
         case DEF:
             ex(p->opr.op[1]);
@@ -88,4 +106,26 @@ int ex(nodeType *p) {
         }
     }
     return 0;
+}
+
+int exCase(nodeType *p, nodeType* switchExpr, int switchLblNum){
+    int lbl1;
+    switch(p->opr.oper){
+        case CASE:
+            //case stmt
+            ex(switchExpr);
+            ex(p->opr.op[0]);
+            printf("\tcompEQ\n");
+            printf("\tjz\tL%03d\n", lbl1 = lbl++);
+            ex(p->opr.op[1]);
+            printf("\tjmp\tL%03d\n", switchLblNum);
+            printf("L%03d:\n", lbl1);
+            break;
+        case DEFAULT:
+            ex(p->opr.op[0]);
+            break;
+        default:
+            exCase(p->opr.op[0], switchExpr, switchLblNum);
+            exCase(p->opr.op[1], switchExpr, switchLblNum);
+    }
 }

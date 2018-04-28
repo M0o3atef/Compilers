@@ -70,7 +70,7 @@ stmt:     DEF IDENTIFIER AS INT VAR '=' expr ';'         { $$ = opr(DEF, 2, id(d
         | WHILE '(' logic_list ')' stmt                  { $$ = opr(WHILE, 2, $3, $5); }
         | FOR '(' stmt logic_list  ';' stmt ')' stmt     { $$ = opr(FOR, 4, $3, $4, $6, $8); }
         | REPEAT stmt UNTIL '(' logic_list ')' ';'       { $$ = opr(REPEAT, 2, $5, $2); }
-        | SWITCH '(' expr ')' case_stmt                  { $$ = opr(REPEAT, 2, $3, $5); }
+        | SWITCH '(' expr ')' case_stmt                  { $$ = opr(SWITCH, 2, $3, $5); }
         | IF '(' logic_list ')' stmt %prec IFX           { $$ = opr(IF, 2, $3, $5); }
         | IF '(' logic_list ')' stmt ELSE stmt           { $$ = opr(IF, 3, $3, $5, $7); }
         | '{' stmt_list '}'                              { $$ = $2; }
@@ -255,11 +255,6 @@ void freeNode(nodeType *p) {
 
 void yyerror(char *s) {
     fprintf(stdout, "%s\n", s);
-}
-
-int ex(nodeType *p){
-    printf("Well Done, No Errors\n");
-    return 0;
 }
 
 int main(void) {

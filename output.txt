@@ -1,172 +1,68 @@
-	push	0
-	pop	x
-	push	"mohamed atef"
-	pop	my_name
-	push	1
-	pop	y
-L000:
-	push	x
-	push	3
-	compLT
-	jz	L001
-	push	x
-	print
-	push	x
-	push	2
-	compEQ
-	push	y
-	push	5
-	compNE
-	jz	L002
-	push	x
-	push	2
-	push	5
-	add
-	mul
-	push	y
-	div
-	pop	my_name
-	jmp	L003
-L002:
-	push	x
-	push	1
-	add
-	pop	y
-L003:
-	push	y
-	push	1
-	compLT
-	jz	L004
-	push	0
-	pop	x
-	push	"Hello"
-	pop	my_name
-	push	10
-	pop	l
-L004:
-	push	"Say Hello"
-	print
-	jmp	L000
-L001:
-	push	1
-	pop	i
-L005:
-	push	i
-	print
-	push	i
-	push	5
-	compLT
-	jz	L006
-	jmp	L005
-L006:
-	push	1
-	pop	i
-L007:
-	push	i
-	push	5
-	compLT
-	jz	L008
-	push	i
-	print
-	push	i
-	push	1
-	add
-	pop	i
-	jmp	L007
-L008:
-	push	i
-	print
-	push	i
-	push	5
-	mul
-	push	4
-	sub
-	push	5
-	compEQ
-	jz	L010
-	push	y
-	push	5
-	compEQ
-	jz	L012
-	push	y
-	push	1
-	add
-	pop	y
-	jmp	L011
-L012:
-	push	y
-	push	i
-	push	1
-	add
-	compEQ
-	jz	L013
-L014:
-	push	i
-	print
-	push	i
-	push	5
-	compLT
-	jz	L015
-	jmp	L014
-L015:
-	jmp	L011
-L013:
-	push	"Done"
-	print
-L011:
-	push	"hello"
-	print
-	jmp	L009
-L010:
-	push	i
-	push	5
-	mul
-	push	4
-	sub
-	push	6
-	compEQ
-	jz	L016
-	push	y
-	push	5
-	compEQ
-	jz	L018
-	push	y
-	push	1
-	add
-	pop	y
-	jmp	L017
-L018:
-	push	y
-	push	i
-	push	1
-	add
-	compEQ
-	jz	L019
-	push	i
-	push	5
-	mul
-	push	1
-	sub
-	pop	y
-	jmp	L017
-L019:
-L017:
-	push	"Hi"
-	print
-	push	i
-	push	50
-	push	4
-	mul
-	push	210
-	div
-	add
-	pop	i
-	jmp	L009
-L016:
-	push	"Default"
-	print
-	push	"Done"
-	print
-L009:
-	push	y
-	print
+
+
+Graph 0:
+
+    def
+     |
+   |----|
+   |    |
+ id(i) c(1)
+
+
+Graph 1:
+
+        if
+        |
+     |--------|
+     |        |
+    [>]     print
+     |        |
+   |----|     |
+   |    |     |
+ id(i) c(1) id(i)
+
+
+Graph 2:
+
+                         if
+                         |
+                      |-------------------------|
+                      |                         |
+                    [AND]                     print
+                      |                         |
+                 |---------------------|        |
+                 |                     |        |
+               [OR]                   [>]     id(i)
+                 |                     |
+           |----------------|        |----|
+           |                |        |    |
+         [AND]             [<]     id(i) c(1)
+           |                |
+     |-----------|        |----|
+     |           |        |    |
+    [>]         [<]     id(i) c(3)
+     |           |
+   |----|     |-----|
+   |    |     |     |
+ id(i) c(5) id(i) c(10)
+
+
+Graph 3:
+
+                  while
+                    |
+                 |-------------------|
+                 |                   |
+               [AND]               print
+                 |                   |
+           |----------------|        |
+           |                |        |
+         [OR]              [>]     id(i)
+           |                |
+     |----------|        |-----|
+     |          |        |     |
+    [>]        [<]     id(i) c(10)
+     |          |
+   |----|     |----|
+   |    |     |    |
+ id(i) c(5) id(i) c(3)

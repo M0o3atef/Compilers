@@ -5,7 +5,7 @@
 static int lbl;
 
 int ex(nodeType *p) {
-    int lbl1, lbl2;
+    int lbl1, lbl2, lbl3;
 
     if (!p) return 0;
     switch(p->type) {
@@ -30,45 +30,50 @@ int ex(nodeType *p) {
         case WHILE:
             printf("L%03d:\n", lbl1 = lbl++);
             //printf("While Loop, Condition: \n");
-            ex(p->opr.op[0]);
-            printf("\tjz\tL%03d\n", lbl2 = lbl++);
+            exCondition(p->opr.op[0], lbl2 = lbl++, lbl3 = lbl++); // Condition
+            printf("\tjz\tL%03d\n", lbl2);
             //printf("\tWhile Loop, Block: \n");
-            ex(p->opr.op[1]);
+            printf("L%03d:\n", lbl3);
+            ex(p->opr.op[1]); // Body
             printf("\tjmp\tL%03d\n", lbl1);
             printf("L%03d:\n", lbl2);
             break;
         case FOR:
-            ex(p->opr.op[0]);
+            ex(p->opr.op[0]); // Initial Statements
             printf("L%03d:\n", lbl1 = lbl++);
-            ex(p->opr.op[1]);
-            printf("\tjz\tL%03d\n", lbl2 = lbl++);
-            ex(p->opr.op[3]);
-            ex(p->opr.op[2]);
+            exCondition(p->opr.op[1], lbl2 = lbl++, lbl3 = lbl++); // Condition
+            printf("\tjz\tL%03d\n", lbl2);
+            printf("L%03d:\n", lbl3);
+            ex(p->opr.op[3]); // Body
+            ex(p->opr.op[2]); // After-Body Statements
             printf("\tjmp\tL%03d\n", lbl1);
             printf("L%03d:\n", lbl2);
             break;
         case REPEAT:
             printf("L%03d:\n", lbl1 = lbl++);
-            ex(p->opr.op[1]); //execute block
-            ex(p->opr.op[0]); //execute logic
-            printf("\tjz\tL%03d\n", lbl2 = lbl++);
+            ex(p->opr.op[1]); // Body
+            exCondition(p->opr.op[0], lbl2 = lbl++, lbl1); // Condition
+            printf("\tjz\tL%03d\n", lbl2);
             printf("\tjmp\tL%03d\n", lbl1);
             printf("L%03d:\n", lbl2);
             break;
         case IF:
-            ex(p->opr.op[0]);
             if (p->opr.nops > 2) {
                 /* if else */
-                printf("\tjz\tL%03d\n", lbl1 = lbl++);
-                ex(p->opr.op[1]);
+                exCondition(p->opr.op[0], lbl1 = lbl++, lbl3 = lbl++); // Condition
+                printf("\tjz\tL%03d\n", lbl1);
+                printf("L%03d:\n", lbl3);
+                ex(p->opr.op[1]); // True Body
                 printf("\tjmp\tL%03d\n", lbl2 = lbl++);
                 printf("L%03d:\n", lbl1);
-                ex(p->opr.op[2]);
+                ex(p->opr.op[2]); // False Body
                 printf("L%03d:\n", lbl2);
             } else {
                 /* if */
-                printf("\tjz\tL%03d\n", lbl1 = lbl++);
-                ex(p->opr.op[1]);
+                exCondition(p->opr.op[0], lbl1 = lbl++, lbl3 = lbl++); // Condition
+                printf("\tjz\tL%03d\n", lbl1);
+                printf("L%03d:\n", lbl3);
+                ex(p->opr.op[1]); // True Body
                 printf("L%03d:\n", lbl1);
             }
             break;
@@ -96,12 +101,6 @@ int ex(nodeType *p) {
             case '-':   printf("\tsub\n"); break; 
             case '*':   printf("\tmul\n"); break;
             case '/':   printf("\tdiv\n"); break;
-            case '<':   printf("\tcompLT\n"); break;
-            case '>':   printf("\tcompGT\n"); break;
-            case GE:    printf("\tcompGE\n"); break;
-            case LE:    printf("\tcompLE\n"); break;
-            case NE:    printf("\tcompNE\n"); break;
-            case EQ:    printf("\tcompEQ\n"); break;
             }
         }
     }
@@ -128,4 +127,45 @@ int exCase(nodeType *p, nodeType* switchExpr, int switchLblNum){
             exCase(p->opr.op[0], switchExpr, switchLblNum);
             exCase(p->opr.op[1], switchExpr, switchLblNum);
     }
+    return 0;
+}
+
+int exCondition(nodeType *p, int jmpToIfFalse, int jmpToIfTrue){
+    int lbl1;
+    switch(p->opr.oper){
+        case '&':
+            lbl1 = lbl++;
+            // If First Child is AND and it it False, then jmp to jmpToIfFalse as I'm False also,
+            // Else if First Child is OR and it is True, then jmp to lbl1 (Second Condition)
+            exCondition(p->opr.op[0], jmpToIfFalse, lbl1); // First Condition
+            printf("\tjz\tL%03d\n", jmpToIfFalse); // All cases make L equal to lbl
+            printf("L%03d:\n", lbl1);
+            // If Second Child is AND and it it False, then jmp to jmpToIfFalse as I'm False also
+            // Else if Second Child is OR and it is True, then jmp to jmpToIfTrue as I'm True also.
+            exCondition(p->opr.op[1], jmpToIfFalse, jmpToIfTrue); // Second Condition
+            break;
+        case '|':
+            lbl1 = lbl++;
+            // If First Child is AND and it it False, then jmp to lbl1 (Second Condition),
+            // Else if First Child is OR and it is True, then jmp to jmpToIfTrue as I'm True also
+            exCondition(p->opr.op[0], lbl1, jmpToIfTrue); // First Condition
+            printf("\tjnz\tL%03d\n", jmpToIfTrue); // All cases make L equal to lbl+1
+            printf("L%03d:\n", lbl1);
+            // If Second Child is AND and it it False, then jmp to jmpToIfFalse as I'm False also
+            // Else if Second Child is OR and it is True, then jmp to jmpToIfTrue as I'm True also.
+            exCondition(p->opr.op[1], jmpToIfFalse, jmpToIfTrue); // Second Condition
+            break;
+        default:
+            ex(p->opr.op[0]);
+            ex(p->opr.op[1]);
+            switch(p->opr.oper) {
+            case '<':   printf("\tcompLT\n"); break;
+            case '>':   printf("\tcompGT\n"); break;
+            case GE:    printf("\tcompGE\n"); break;
+            case LE:    printf("\tcompLE\n"); break;
+            case NE:    printf("\tcompNE\n"); break;
+            case EQ:    printf("\tcompEQ\n"); break;
+            }
+    }
+    return 0;
 }

@@ -1,45 +1,93 @@
-	push	0
-	pop	x
-	push	"mohamed atef"
-	pop	my_name
 	push	1
-	pop	y
+	pop	i
 L000:
-	push	x
+	push	i
+	push	5
+	compLT
+	jz	L002
+L001:
+	push	i
+	push	1
+	compGT
+	jz	L004
+L003:
+	push	i
+	print
+L004:
+	push	i
+	push	5
+	compGT
+	jz	L007
+L008:
+	push	i
+	push	10
+	compLT
+	jnz	L005
+L009:
+	push	i
 	push	3
 	compLT
-	jz	L001
-	push	x
+	jnz	L005
+L007:
+	push	i
+	push	1
+	compGT
+	jz	L006
+L005:
+L010:
+	push	i
 	print
-	push	x
-	push	2
-	compEQ
-	jz	L002
-	push	x
-	push	2
-	mul
-	pop	my_name
-	jmp	L003
-L002:
-	push	x
+	push	i
+	push	5
+	compGT
+	jnz	L012
+L013:
+	push	i
+	push	10
+	compLT
+	jz	L011
+L012:
+	push	i
+	push	3
+	compLT
+	jnz	L010
+L014:
+	push	i
+	push	1
+	compGT
+	jz	L011
+	jmp	L010
+L011:
+	jmp	L015
+L006:
+	push	i
 	push	1
 	add
-	pop	y
-L003:
-	push	y
-	push	1
+	pop	i
+L015:
+L016:
+	push	i
+	push	5
+	compGT
+	jnz	L019
+L020:
+	push	i
+	push	3
 	compLT
-	jz	L004
-	push	0
-	pop	x
-	push	"Hello"
-	pop	my_name
+	jz	L018
+L019:
+	push	i
 	push	10
-	pop	l
-L004:
-	push	"Say Hello"
+	compGT
+	jz	L018
+L017:
+	push	i
 	print
+	jmp	L016
+L018:
+	push	i
+	push	1
+	add
+	pop	i
 	jmp	L000
-L001:
-	push	y
-	print
+L002:

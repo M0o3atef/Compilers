@@ -1,0 +1,4 @@
+def i as int var = 1;
+repeat {
+	print i;
+} until((i > 5 | i < 10) & (i < 3 | i > 1));

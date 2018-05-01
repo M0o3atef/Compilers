@@ -1,0 +1,13 @@
+
+for(def i as int var = 1; i < 5; i = i+1;){
+	if(i > 1)
+		print i;
+	if((i > 5 & (i < 10 | i < 3)) | i > 1)
+		repeat {
+			print i;
+		} until((i > 5 | i < 10) & (i < 3 | i > 1));
+	else
+		i = i +1;
+	while(i > 5 | i < 3 & i > 10)
+		print i;
+}

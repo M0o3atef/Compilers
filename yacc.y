@@ -43,6 +43,8 @@ int yydebug=1;
 %left GE LE EQ NE '>' '<'
 %left '+' '-'
 %left '*' '/'
+%left '&'
+%left '|'
 %nonassoc UMINUS
 
 %type <nPtr> stmt expr stmt_list case_stmt case_list defult_stmt logic_list logic_expr
@@ -101,12 +103,13 @@ logic_expr:
         | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
         | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
         | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
+        | '(' logic_list ')'    { $$ = $2 }
         ;
 
 logic_list:
             logic_expr                  { $$ = $1 }
-        |   logic_list '&' logic_expr   { $$ = opr('&', 2, $1, $3); }
         |   logic_list '|' logic_expr   { $$ = opr('|', 2, $1, $3); }
+        |   logic_list '&' logic_expr   { $$ = opr('&', 2, $1, $3); }
         ;
 expr:
           INTNUM                { $$ = conInt($1); }
@@ -185,6 +188,7 @@ int defSym(char* name, int type, bool isVar){
     s->index = nextSymNum;
     s->type = type;
     s->isVar = isVar;
+    s->isInitialized = True;
     sym[nextSymNum] = s;
     //printf("Defined Symbol %s of type %d at index %d", s->name, s->type, s->index);
     nextSymNum++;

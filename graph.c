@@ -119,6 +119,12 @@ void exNode
             case EQ:
                 s = "[==]";
                 break;
+            case '&':
+            	s = "[AND]";
+            	break;
+            case '|':
+            	s = "[OR]";
+            	break;
             }
             break;
         }

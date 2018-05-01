@@ -31,6 +31,8 @@ void yyerror(char *);
 "string"        { return STRING; }
 [ \t\n]+        {;}       /* ignore whitespace */
 
+[-()<>=+*/;:{}&|.] { return *yytext; }
+
 [a-zA-Z][a-zA-Z0-9_]* {
                         yylval.varName = yytext;
                         return IDENTIFIER;
@@ -55,10 +57,6 @@ void yyerror(char *);
                 yylval.sValue = strdup(yytext+1);
                 yylval.sValue[yyleng-2] = 0;
                 return QUOTESTRING;
-            }
-
-[-()<>=+*/;:{}&|.] {
-                return *yytext;
             }
 
 .               { yyerror("Unknown character"); }

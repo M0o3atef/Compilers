@@ -286,16 +286,16 @@ static void yy_fatal_error YY_PROTO(( yyconst char msg[] ));
 #define YY_END_OF_BUFFER 31
 static yyconst short int yy_accept[100] =
     {   0,
-        0,    0,   31,   29,   22,   22,   29,   29,   28,   28,
-       24,   25,   28,   28,   28,   23,   23,   23,   23,   23,
-       23,   23,   23,   23,   23,   23,   23,   23,   22,    4,
-        0,   27,   24,   26,    0,   24,    0,    0,   25,    2,
-        3,    1,   23,   16,   23,   23,   23,   23,   23,   23,
-       12,   23,   23,   23,   23,   23,   23,   23,   23,   23,
-       23,   15,   23,   23,    6,   19,   23,   23,   23,   23,
-       23,   17,   23,   10,   23,   23,   13,   23,   23,   23,
-       23,   23,   23,   23,   18,   23,   20,   14,   23,   23,
-       23,    8,    5,   23,    7,   21,    9,   11,    0
+        0,    0,   31,   29,   22,   22,   29,   29,   23,   23,
+       25,   26,   23,   23,   23,   24,   24,   24,   24,   24,
+       24,   24,   24,   24,   24,   24,   24,   24,   22,    4,
+        0,   28,   25,   27,    0,   25,    0,    0,   26,    2,
+        3,    1,   24,   16,   24,   24,   24,   24,   24,   24,
+       12,   24,   24,   24,   24,   24,   24,   24,   24,   24,
+       24,   15,   24,   24,    6,   19,   24,   24,   24,   24,
+       24,   17,   24,   10,   24,   24,   13,   24,   24,   24,
+       24,   24,   24,   24,   18,   24,   20,   14,   24,   24,
+       24,    8,    5,   24,    7,   21,    9,   11,    0
 
     } ;
 
@@ -784,22 +784,19 @@ YY_RULE_SETUP
 case 23:
 YY_RULE_SETUP
 #line 34 "lex.l"
+{ return *yytext; }
+	YY_BREAK
+case 24:
+YY_RULE_SETUP
+#line 36 "lex.l"
 {
                         yylval.varName = yytext;
                         return IDENTIFIER;
                      }
 	YY_BREAK
-case 24:
-YY_RULE_SETUP
-#line 39 "lex.l"
-{
-                yylval.iValue = atoi(yytext);
-                return INTNUM;
-            }
-	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 44 "lex.l"
+#line 41 "lex.l"
 {
                 yylval.iValue = atoi(yytext);
                 return INTNUM;
@@ -807,39 +804,40 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 49 "lex.l"
+#line 46 "lex.l"
+{
+                yylval.iValue = atoi(yytext);
+                return INTNUM;
+            }
+	YY_BREAK
+case 27:
+YY_RULE_SETUP
+#line 51 "lex.l"
 {
                 yylval.fValue = atof(yytext);
                 return FLOATNUM;
             }
 	YY_BREAK
-case 27:
+case 28:
 YY_RULE_SETUP
-#line 54 "lex.l"
+#line 56 "lex.l"
 {
                 yylval.sValue = strdup(yytext+1);
                 yylval.sValue[yyleng-2] = 0;
                 return QUOTESTRING;
             }
 	YY_BREAK
-case 28:
-YY_RULE_SETUP
-#line 60 "lex.l"
-{
-                return *yytext;
-            }
-	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 64 "lex.l"
+#line 62 "lex.l"
 { yyerror("Unknown character"); }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 66 "lex.l"
+#line 64 "lex.l"
 ECHO;
 	YY_BREAK
-#line 843 "lex.yy.c"
+#line 841 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1725,7 +1723,7 @@ int main()
 	return 0;
 	}
 #endif
-#line 66 "lex.l"
+#line 64 "lex.l"
 
 
 int yywrap(void) {

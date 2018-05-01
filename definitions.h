@@ -37,6 +37,7 @@ typedef struct{
     int index;
     int type; // 0 int, 1 float, 2 string
     bool isVar; // false const, true variable
+    bool isInitialized; // false const, true variable
 }symbolEntry;
 
 extern symbolEntry* sym[MAXNUMOFSYMS];

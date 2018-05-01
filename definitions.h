@@ -41,3 +41,4 @@ typedef struct{
 }symbolEntry;
 
 extern symbolEntry* sym[MAXNUMOFSYMS];
+extern int nextSymNum;

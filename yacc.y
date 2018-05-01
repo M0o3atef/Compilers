@@ -11,7 +11,7 @@ nodeType *opr(int oper, int nops, ...);
 nodeType* conFloat(double value);
 nodeType *conInt(int value);
 nodeType* conString(char* value);
-int defSym(char* name, int type, bool isVar);
+int defSym(char* name, int type, bool isVar, bool isInitialized);
 int getIndex(char* varName);
 nodeType *id(int index);
 void freeNode(nodeType *p);
@@ -43,8 +43,7 @@ int yydebug=1;
 %left GE LE EQ NE '>' '<'
 %left '+' '-'
 %left '*' '/'
-%left '&'
-%left '|'
+%left '&' '|'
 %nonassoc UMINUS
 
 %type <nPtr> stmt expr stmt_list case_stmt case_list defult_stmt logic_list logic_expr
@@ -60,22 +59,25 @@ function:
         | /* NULL */
         ;
 
-stmt:     DEF IDENTIFIER AS INT VAR '=' expr ';'         { $$ = opr(DEF, 2, id(defSym($2, 0, True)), $7); }
-        | DEF IDENTIFIER AS FLOAT VAR '=' expr ';'       { $$ = opr(DEF, 2, id(defSym($2, 1, True)), $7); }
-        | DEF IDENTIFIER AS STRING VAR '=' expr ';'      { $$ = opr(DEF, 2, id(defSym($2, 2, True)), $7); }
-        | DEF IDENTIFIER AS INT CONST '=' expr ';'       { $$ = opr(DEF, 2, id(defSym($2, 0, False)), $7); }
-        | DEF IDENTIFIER AS FLOAT CONST '=' expr ';'     { $$ = opr(DEF, 2, id(defSym($2, 1, False)), $7); }
-        | DEF IDENTIFIER AS STRING CONST '=' expr ';'    { $$ = opr(DEF, 2, id(defSym($2, 2, False)), $7); }
-        |  ';'                                           { $$ = opr(';', 2, NULL, NULL); }
-        | PRINT expr ';'                                 { $$ = opr(PRINT, 1, $2); }
-        | IDENTIFIER '=' expr ';'                        { $$ = opr('=', 2, id(getIndex($1)), $3); }
-        | WHILE '(' logic_list ')' stmt                  { $$ = opr(WHILE, 2, $3, $5); }
-        | FOR '(' stmt logic_list  ';' stmt ')' stmt     { $$ = opr(FOR, 4, $3, $4, $6, $8); }
-        | REPEAT stmt UNTIL '(' logic_list ')' ';'       { $$ = opr(REPEAT, 2, $5, $2); }
-        | SWITCH '(' expr ')' case_stmt                  { $$ = opr(SWITCH, 2, $3, $5); }
-        | IF '(' logic_list ')' stmt %prec IFX           { $$ = opr(IF, 2, $3, $5); }
-        | IF '(' logic_list ')' stmt ELSE stmt           { $$ = opr(IF, 3, $3, $5, $7); }
-        | '{' stmt_list '}'                              { $$ = $2; }
+stmt:     DEF IDENTIFIER AS INT VAR '=' expr ';'     { $$ = opr(DEF, 2, id(defSym($2, 0, True, True)), $7); }
+        | DEF IDENTIFIER AS FLOAT VAR '=' expr ';'   { $$ = opr(DEF, 2, id(defSym($2, 1, True, True)), $7); }
+        | DEF IDENTIFIER AS STRING VAR '=' expr ';'  { $$ = opr(DEF, 2, id(defSym($2, 2, True, True)), $7); }
+        | DEF IDENTIFIER AS INT VAR ';'              { $$ = opr(DEF, 1, id(defSym($2, 0, True, False))); }
+        | DEF IDENTIFIER AS FLOAT VAR ';'            { $$ = opr(DEF, 1, id(defSym($2, 1, True, False))); }
+        | DEF IDENTIFIER AS STRING VAR ';'           { $$ = opr(DEF, 1, id(defSym($2, 2, True, False))); }
+        | DEF IDENTIFIER AS INT CONST '=' expr ';'   { $$ = opr(DEF, 2, id(defSym($2, 0, False, True)), $7); }
+        | DEF IDENTIFIER AS FLOAT CONST '=' expr ';' { $$ = opr(DEF, 2, id(defSym($2, 1, False, True)), $7); }
+        | DEF IDENTIFIER AS STRING CONST '=' expr ';'{ $$ = opr(DEF, 2, id(defSym($2, 2, False, True)), $7); }
+        |  ';'                                       { $$ = opr(';', 2, NULL, NULL); }
+        | PRINT expr ';'                             { $$ = opr(PRINT, 1, $2); }
+        | IDENTIFIER '=' expr ';'                    { $$ = opr('=', 2, id(getIndex($1)), $3); }
+        | WHILE '(' logic_list ')' stmt              { $$ = opr(WHILE, 2, $3, $5); }
+        | FOR '(' stmt logic_list  ';' stmt ')' stmt { $$ = opr(FOR, 4, $3, $4, $6, $8); }
+        | REPEAT stmt UNTIL '(' logic_list ')' ';'   { $$ = opr(REPEAT, 2, $5, $2); }
+        | SWITCH '(' expr ')' case_stmt              { $$ = opr(SWITCH, 2, $3, $5); }
+        | IF '(' logic_list ')' stmt %prec IFX       { $$ = opr(IF, 2, $3, $5); }
+        | IF '(' logic_list ')' stmt ELSE stmt       { $$ = opr(IF, 3, $3, $5, $7); }
+        | '{' stmt_list '}'                          { $$ = $2; }
         ;
 
 stmt_list:
@@ -178,7 +180,7 @@ char* truncStringAtSpace(char* varChar){
     return temp;
 }
 
-int defSym(char* name, int type, bool isVar){
+int defSym(char* name, int type, bool isVar, bool isInitialized){
     symbolEntry *s = NULL;
     if(nextSymNum < MAXNUMOFSYMS)
         s = malloc(sizeof(symbolEntry));
@@ -188,7 +190,7 @@ int defSym(char* name, int type, bool isVar){
     s->index = nextSymNum;
     s->type = type;
     s->isVar = isVar;
-    s->isInitialized = True;
+    s->isInitialized = isInitialized;
     sym[nextSymNum] = s;
     //printf("Defined Symbol %s of type %d at index %d", s->name, s->type, s->index);
     nextSymNum++;

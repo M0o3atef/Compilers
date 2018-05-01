@@ -4,6 +4,23 @@
 
 static int lbl;
 
+int exMain(nodeType *p){
+    if (!p) return 0;
+    int i;
+    for (i = 0; i < nextSymNum; i++)
+    {
+        if (sym[i]->type == 0){ // int
+            printf("%s\tDW\n", sym[i]->name);
+        }else if (sym[i]->type == 0){ // float
+            printf("%s\tDD\n", sym[i]->name);
+        }else{ // String
+            printf("%s\tDB\n", sym[i]->name);
+        }
+    }
+    ex(p);
+    return 0;
+}
+
 int ex(nodeType *p) {
     int lbl1, lbl2, lbl3;
 
@@ -90,8 +107,10 @@ int ex(nodeType *p) {
             printf("\tpop\t%s\n", sym[p->opr.op[0]->id.i]->name);
             break;
         case DEF:
-            ex(p->opr.op[1]);
-            printf("\tpop\t%s\n", sym[p->opr.op[0]->id.i]->name);
+            if(p->opr.nops == 2){
+                ex(p->opr.op[1]);
+                printf("\tpop\t%s\n", sym[p->opr.op[0]->id.i]->name);
+            }
             break;
         default:
             ex(p->opr.op[0]);

@@ -80,14 +80,26 @@ void exNode
 	        case DEF:
                 s = "def";
                 break;
+            case REPEAT:
+                s = "repeat";
+                break;
+            case FOR:
+                s = "for";
+                break;
+            case SWITCH:
+                s = "switch";
+                break;
+            case CASE:
+                s = "case";
+                break;
+            case DEFAULT:
+                s = "default";
+                break;
             case ';':
                 s = "[;]";
                 break;
             case '=':
                 s = "[=]";
-                break;
-            case UMINUS:
-                s = "[_]";
                 break;
             case '+':
                 s = "[+]";

@@ -1,3 +1,6 @@
+#ifndef DEFINITIONS_SEEN
+#define DEFINITIONS_SEEN
+
 #define MAXNUMOFSYMS 100
 typedef enum { typeIntCon, typeFloatCon, typeStringCon, typeId, typeOpr } nodeEnum;
 typedef enum { False, True } bool;
@@ -42,3 +45,7 @@ typedef struct{
 
 extern symbolEntry* sym[MAXNUMOFSYMS];
 extern int nextSymNum;
+int yylineno;
+extern bool hasNoErrors;
+
+#endif

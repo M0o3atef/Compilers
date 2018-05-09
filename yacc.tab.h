@@ -59,13 +59,13 @@
      INT = 275,
      FLOAT = 276,
      STRING = 277,
-     IFX = 278,
-     ELSE = 279,
-     NE = 280,
-     EQ = 281,
-     LE = 282,
-     GE = 283,
-     UMINUS = 284
+     FUN = 278,
+     IFX = 279,
+     ELSE = 280,
+     NE = 281,
+     EQ = 282,
+     LE = 283,
+     GE = 284
    };
 #endif
 
@@ -76,7 +76,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 27 "yacc.y"
+#line 31 "yacc.y"
 
     double fValue;              /* Floating deciamal value */
     int iValue;                 /* integer value */

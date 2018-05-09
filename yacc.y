@@ -15,14 +15,18 @@ int defSym(char* name, int type, bool isVar, bool isInitialized);
 int getIndex(char* varName);
 nodeType *id(int index);
 void freeNode(nodeType *p);
-int ex(nodeType *p);
+extern int ex(nodeType *p);
+extern int exMain(nodeType *p);
 int yylex(void);
 
 void yyerror(char *s);
 symbolEntry* sym[MAXNUMOFSYMS];                    /* symbol table */
 int nextSymNum = 0;
 int yydebug=1;
+bool hasNoErrors = True;
 %}
+
+%error-verbose
 
 %union {
     double fValue;              /* Floating deciamal value */
@@ -36,7 +40,7 @@ int yydebug=1;
 %token <fValue> FLOATNUM
 %token <sValue> QUOTESTRING
 %token <varName> IDENTIFIER
-%token WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT IF PRINT DEF AS VAR CONST INT FLOAT STRING
+%token WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT IF PRINT DEF AS VAR CONST INT FLOAT STRING FUN
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -44,56 +48,67 @@ int yydebug=1;
 %left '+' '-'
 %left '*' '/'
 %left '&' '|'
-%nonassoc UMINUS
 
-%type <nPtr> stmt expr stmt_list case_stmt case_list defult_stmt logic_list logic_expr
+%type <nPtr> stmt expr stmt_list case_stmt case_list defult_stmt logic_list logic_expr err_stmt function
 
 %%
 
 program:
-        function                { exit(0); }
+        function                { exMain($1); freeNode($1); exit(0); }
         ;
 
 function:
-          function stmt         { ex($2); freeNode($2); }
+          function stmt         { $$ = opr(FUN, 2, $1, $2); }
+        | function err_stmt     {}
         | /* NULL */
         ;
 
-stmt:     DEF IDENTIFIER AS INT VAR '=' expr ';'     { $$ = opr(DEF, 2, id(defSym($2, 0, True, True)), $7); }
-        | DEF IDENTIFIER AS FLOAT VAR '=' expr ';'   { $$ = opr(DEF, 2, id(defSym($2, 1, True, True)), $7); }
-        | DEF IDENTIFIER AS STRING VAR '=' expr ';'  { $$ = opr(DEF, 2, id(defSym($2, 2, True, True)), $7); }
-        | DEF IDENTIFIER AS INT VAR ';'              { $$ = opr(DEF, 1, id(defSym($2, 0, True, False))); }
-        | DEF IDENTIFIER AS FLOAT VAR ';'            { $$ = opr(DEF, 1, id(defSym($2, 1, True, False))); }
-        | DEF IDENTIFIER AS STRING VAR ';'           { $$ = opr(DEF, 1, id(defSym($2, 2, True, False))); }
-        | DEF IDENTIFIER AS INT CONST '=' expr ';'   { $$ = opr(DEF, 2, id(defSym($2, 0, False, True)), $7); }
-        | DEF IDENTIFIER AS FLOAT CONST '=' expr ';' { $$ = opr(DEF, 2, id(defSym($2, 1, False, True)), $7); }
-        | DEF IDENTIFIER AS STRING CONST '=' expr ';'{ $$ = opr(DEF, 2, id(defSym($2, 2, False, True)), $7); }
-        |  ';'                                       { $$ = opr(';', 2, NULL, NULL); }
-        | PRINT expr ';'                             { $$ = opr(PRINT, 1, $2); }
-        | IDENTIFIER '=' expr ';'                    { $$ = opr('=', 2, id(getIndex($1)), $3); }
-        | WHILE '(' logic_list ')' stmt              { $$ = opr(WHILE, 2, $3, $5); }
-        | FOR '(' stmt logic_list  ';' stmt ')' stmt { $$ = opr(FOR, 4, $3, $4, $6, $8); }
-        | REPEAT stmt UNTIL '(' logic_list ')' ';'   { $$ = opr(REPEAT, 2, $5, $2); }
-        | SWITCH '(' expr ')' case_stmt              { $$ = opr(SWITCH, 2, $3, $5); }
-        | IF '(' logic_list ')' stmt %prec IFX       { $$ = opr(IF, 2, $3, $5); }
-        | IF '(' logic_list ')' stmt ELSE stmt       { $$ = opr(IF, 3, $3, $5, $7); }
-        | '{' stmt_list '}'                          { $$ = $2; }
-        ;
+err_stmt:
+      error ';'                                  { hasNoErrors = False; }
+    | error '}'                                  { hasNoErrors = False; }
+    | error ')'                                  { hasNoErrors = False; }
+    | error REPEAT                               { hasNoErrors = False; }
+    ;
+
+stmt:
+    DEF IDENTIFIER AS INT VAR '=' expr ';'       { $$ = opr(DEF, 2, id(defSym($2, 0, True, True)), $7); }
+    | DEF IDENTIFIER AS FLOAT VAR '=' expr ';'   { $$ = opr(DEF, 2, id(defSym($2, 1, True, True)), $7); }
+    | DEF IDENTIFIER AS STRING VAR '=' expr ';'  { $$ = opr(DEF, 2, id(defSym($2, 2, True, True)), $7); }
+    | DEF IDENTIFIER AS INT VAR ';'              { $$ = opr(DEF, 1, id(defSym($2, 0, True, False))); }
+    | DEF IDENTIFIER AS FLOAT VAR ';'            { $$ = opr(DEF, 1, id(defSym($2, 1, True, False))); }
+    | DEF IDENTIFIER AS STRING VAR ';'           { $$ = opr(DEF, 1, id(defSym($2, 2, True, False))); }
+    | DEF IDENTIFIER AS INT CONST '=' expr ';'   { $$ = opr(DEF, 2, id(defSym($2, 0, False, True)), $7); }
+    | DEF IDENTIFIER AS FLOAT CONST '=' expr ';' { $$ = opr(DEF, 2, id(defSym($2, 1, False, True)), $7); }
+    | DEF IDENTIFIER AS STRING CONST '=' expr ';'{ $$ = opr(DEF, 2, id(defSym($2, 2, False, True)), $7); }
+    |  ';'                                       { $$ = opr(';', 2, NULL, NULL); }
+    | PRINT expr ';'                             { $$ = opr(PRINT, 1, $2); }
+    | IDENTIFIER '=' expr ';'                    { $$ = opr('=', 2, id(getIndex($1)), $3); }
+    | WHILE '(' logic_list ')' stmt              { $$ = opr(WHILE, 2, $3, $5); }
+    | FOR '(' stmt logic_list  ';' stmt ')' stmt { $$ = opr(FOR, 4, $3, $4, $6, $8); }
+    | REPEAT stmt UNTIL '(' logic_list ')' ';'   { $$ = opr(REPEAT, 2, $5, $2); }
+    | SWITCH '(' expr ')' case_stmt              { $$ = opr(SWITCH, 2, $3, $5); }
+    | IF '(' logic_list ')' stmt %prec IFX       { $$ = opr(IF, 2, $3, $5); }
+    | IF '(' logic_list ')' stmt ELSE stmt       { $$ = opr(IF, 3, $3, $5, $7); }
+    | '{' stmt_list '}'                          { $$ = $2; }
+    ;
 
 stmt_list:
-          stmt                  { $$ = $1; }
-        | stmt_list stmt        { $$ = opr(';', 2, $1, $2); }
-        ;
+    stmt                    { $$ = $1; }
+    | stmt_list stmt        { $$ = opr(';', 2, $1, $2); }
+    ;
 
-defult_stmt: DEFAULT stmt                                { $$ = opr(DEFAULT, 1, $2) }
-        ;
+defult_stmt: 
+    DEFAULT stmt                                     { $$ = opr(DEFAULT, 1, $2) }
+    ;
 
-case_stmt:  CASE '(' expr ')' stmt                       { $$ = opr(CASE, 2, $3, $5); }
-        |   '{' case_list '}'                            { $$ = $2; }
-        |   '{' case_list defult_stmt '}'                { $$ = opr(';', 2, $2, $3) }
-        ;
+case_stmt:  
+    CASE '(' expr ')' stmt                           { $$ = opr(CASE, 2, $3, $5); }
+    |   '{' case_list '}'                            { $$ = $2; }
+    |   '{' case_list defult_stmt '}'                { $$ = opr(';', 2, $2, $3) }
+    ;
 
-case_list: case_stmt                                     { $$ = $1 }
+case_list: 
+        case_stmt                                        { $$ = $1 }
         |  case_list case_stmt                           { $$ = opr(';', 2, $1, $2) }
         ;
 
@@ -181,12 +196,18 @@ char* truncStringAtSpace(char* varChar){
 }
 
 int defSym(char* name, int type, bool isVar, bool isInitialized){
+    name = truncStringAtSpace(name);
+    if(getIndex(name) != -1){
+        printf("line %d: Multiple Definition of variable %s\n", yylineno+1, name);
+        hasNoErrors = False;
+        return -1;
+    }
     symbolEntry *s = NULL;
     if(nextSymNum < MAXNUMOFSYMS)
         s = malloc(sizeof(symbolEntry));
     if(s == NULL)
         yyerror("out of memory");
-    s->name = truncStringAtSpace(name);
+    s->name = name;
     s->index = nextSymNum;
     s->type = type;
     s->isVar = isVar;
@@ -228,6 +249,88 @@ nodeType *id(int index) {
     return p;
 }
 
+int getIdType(nodeType* p){
+    return sym[p->id.i]->type;
+}
+
+bool isIdVar(nodeType* p){
+   return sym[p->id.i]->isVar; 
+}
+
+bool isIdInitialized(nodeType* p){
+   return sym[p->id.i]->isInitialized; 
+}
+
+char* getIdName(nodeType* p){
+   return sym[p->id.i]->name; 
+}
+
+
+void checkImproperUsage(int oper, int nops, nodeType *p){
+    //LHS and RHS of binary arithmetic and logical operators can't be strings and must be initialized
+    if(oper == '*' || oper == '/' || oper == '+' || oper == '-' ||
+    oper == '<' || oper == '>' || oper == GE || oper == LE || oper == EQ || oper == NE ||
+    oper == '&' || oper == '|'){
+        if((p->opr.op[0]->type == typeStringCon) || (p->opr.op[1]->type == typeStringCon) ||
+        (p->opr.op[0]->type == typeId && getIdType(p->opr.op[0]) == 2) ||
+        (p->opr.op[1]->type == typeId && getIdType(p->opr.op[1]) == 2)){
+            if(oper == LE || oper == EQ || oper == NE || oper == GE){
+                char* op = ">=";
+                if(oper == LE)
+                    op = "<=";
+                else if(oper == EQ)
+                    op = "==";
+                else if(oper == NE)
+                    op = "!=";
+                printf("line %d: Operator '%s' can't have string on any of its sides\n", yylineno+1, op);
+            }else
+                printf("line %d: Operator '%c' can't have string on any of its sides\n", yylineno+1, oper);
+            hasNoErrors = False;
+        }else if((p->opr.op[0]->type == typeId && isIdInitialized(p->opr.op[0]) == False) ||
+        (p->opr.op[1]->type == typeId && isIdInitialized(p->opr.op[1]) == False)){
+            if(oper == LE || oper == EQ || oper == NE || oper == GE){
+                char* op = ">=";
+                if(oper == LE)
+                    op = "<=";
+                else if(oper == EQ)
+                    op = "==";
+                else if(oper == NE)
+                    op = "!=";
+                printf("line %d: Operator '%s' both sides must be initialized\n", yylineno+1, op);
+            }else
+                printf("line %d: Operator '%c' both sides must be initialized\n", yylineno+1, oper);
+            hasNoErrors = False;
+        }
+    }else if(oper == '='){
+        //Constant variables, constant numbers (1, 5.32) and qouteStrings can't be used on LHS
+        if((p->opr.op[0]->type == typeId && isIdVar(p->opr.op[0]) == False) ||
+        p->opr.op[0]->type == typeStringCon || p->opr.op[0]->type == typeIntCon ||
+        p->opr.op[0]->type == typeFloatCon){
+            printf("line %d: LHS of '=' must be a variable\n", yylineno+1);
+            hasNoErrors = False;
+        }else{
+            if(getIdType(p->opr.op[0]) == 2){
+                // Check if LHS (which is for sure a variable) is string then RHS is also a string
+                if(p->opr.op[1]->type != typeStringCon &&
+                (p->opr.op[1]->type != typeId || getIdType(p->opr.op[1]) != 2)){
+                    printf("line %d: LHS is string, but RHS is not a string\n", yylineno+1);
+                    hasNoErrors = False;
+                }
+            }else if(p->opr.op[1]->type == typeStringCon ||
+                (p->opr.op[1]->type == typeId && getIdType(p->opr.op[1]) == 2)){
+                // Check if LHS (which is for sure a variable) is not string then RHS can't be a string
+                    printf("line %d: LHS is not string, but RHS is a string\n", yylineno+1);
+                    hasNoErrors = False;
+                }
+        }
+        // RHS must be initialized
+        if(p->opr.op[1]->type == typeId && isIdInitialized(p->opr.op[1]) == False){
+            printf("line %d: RHS of operator '=' must be initialized\n", yylineno+1);
+            hasNoErrors = False;
+        }
+    }
+}
+
 nodeType *opr(int oper, int nops, ...) {
     va_list ap;
     nodeType *p;
@@ -245,6 +348,12 @@ nodeType *opr(int oper, int nops, ...) {
     for (i = 0; i < nops; i++)
         p->opr.op[i] = va_arg(ap, nodeType*);
     va_end(ap);
+    checkImproperUsage(oper, nops, p);
+    if(oper == '='){
+        // LHS is now initialized
+        if(p->opr.op[0]->type == typeId)
+            sym[p->opr.op[0]->id.i]->isInitialized = True;
+    }
     return p;
 }
 
@@ -260,8 +369,12 @@ void freeNode(nodeType *p) {
 }
 
 void yyerror(char *s) {
-    fprintf(stdout, "%s\n", s);
+    printf("line %d: %s\n", yylineno+1, s);
 }
+
+/*int ex(nodeType * p){
+    printf("Called");
+}*/
 
 int main(void) {
     yyparse();

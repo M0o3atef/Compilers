@@ -29,8 +29,8 @@ void yyerror(char *);
 "int"           { return INT; }
 "float"         { return FLOAT; }
 "string"        { return STRING; }
-[ \t\n]+        {;}       /* ignore whitespace */
-
+[ \t]+          {;}       /* ignore whitespace */
+[\n]            {yylineno += 1;}
 [-()<>=+*/;:{}&|.] { return *yytext; }
 
 [a-zA-Z][a-zA-Z0-9_]* {

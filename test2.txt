@@ -1,5 +1,16 @@
 def i as int var = 1;
 if(i > 5 | (i < 10 & (i < 3 | i > 1)))
-	i = i * 2;
+	i = i * 2
 else
 	i = i +1;
+switch (i*5-4) {
+	case (5)
+		print "hello";
+	case (6){
+		print "Hi";
+		i = i + 50*4 / 210;
+	}
+	default{
+		print "Default";
+	}
+}

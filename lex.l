@@ -30,6 +30,7 @@ void yyerror(char *);
 "float"         { return FLOAT; }
 "string"        { return STRING; }
 "function"      { return FUN; }
+"call"          { return CALL; }
 [ \t]+          {;}       /* ignore whitespace */
 [\n]            {yylineno += 1;}
 [-()<>=+*/;:{}&|.] { return *yytext; }

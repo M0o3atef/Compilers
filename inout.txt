@@ -1,12 +1,4 @@
-section .data:
-	x	DD
-	my_name	Times 100 DB
-	y	DQ
-	l	DD
-	i	DD
-
-
-section .code:
+_start			;tell the linker where to start
 		pushD	0
 		popD	x
 		pushS	"mohamed atef\0"
@@ -224,3 +216,11 @@ section .code:
 	L017:
 		pushQ	y
 		printQ
+
+
+section .data:
+	x	DD
+	my_name	Times 100 DB
+	y	DQ
+	l	DD
+	i	DD

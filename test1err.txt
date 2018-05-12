@@ -1,16 +1,2 @@
-section .data:
-	i	DD
-	main	Times 100 DB
-
-
-section .code:
-		pushD	1
-		popD	i
-		pushD	i
-		pushD	1
-		compDGT
-		jz	L001
-	L000:
-		pushD	i
-		printD
-	L001:
+line 10: Functions can't be an argument for 'PRINT' operator
+line 16: Operator '>' can't have string nor functions on any of its sides

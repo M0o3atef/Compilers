@@ -11,6 +11,28 @@ int exMain(nodeType *p){
         return 0;
     if (!p->opr.op[1]) return 0;
     int i;
+
+    char mainFun[5];
+    strcpy(mainFun, "main");
+    int mainIndex = 0;
+    for (i = 0; i < p->opr.nops; ++i)
+        if(strcmp(getIdName(p->opr.op[i]->opr.op[0]), mainFun) == 0)
+            mainIndex = i;
+    // Execute Main
+    printf("_start\t\t\t;tell the linker where to start\n");
+    ex(p->opr.op[mainIndex]->opr.op[1]); //p->opr.op[mainIndex]->opr.op[0] is the functions name
+    printf("\t\texit\n\n\n");
+    // Execute other functions
+    for (i = 0; i < p->opr.nops; ++i)
+    {
+        if(i != mainIndex){
+            printf("%s:\t\t\t;Body of function %s\n", getIdName(p->opr.op[i]->opr.op[0]), getIdName(p->opr.op[i]->opr.op[0]));
+            ex(p->opr.op[i]->opr.op[1]); //p->opr.op[mainIndex]->opr.op[0] is the functions name
+            printf("\tret\n\n");
+        }
+    }
+    // Print the variables
+    fprintf(stderr, "%d\n", p->opr.nops);
     printf("section .data:\n");
     for (i = 0; i < nextSymNum; i++)
     {
@@ -22,25 +44,10 @@ int exMain(nodeType *p){
             printf("\t%s\tTimes 100 DB\n", sym[i]->name);
         }
     }
-    printf("\n\nsection .code:\n");
-    /*char needToFind[5];
-    strcpy(needToFind, "main");
-    for (i = 0; i < p->opr.nops; i++){
-        if(p->opr.op[0]->type == typeStringCon)
-            fprintf(stderr, "%s\n", p->opr.op[0]->con.sValue);
-        else
-            fprintf(stderr, "%d\n", p->opr.op[0]->type);
-
-        if(strcmp(p->opr.op[0]->con.sValue, needToFind) == 0)
-            ex(p);
-    }*/
-    ex(p->opr.op[1]);
     return 0;
 }
 
 int ex(nodeType *p) {
-    if(hasNoErrors == False)
-        return 0;
     int lbl1, lbl2, lbl3;
 
     if (!p) return 0;
@@ -163,6 +170,9 @@ int ex(nodeType *p) {
                 else
                     printf("\t\tpopS\t%s\n", getIdName(p->opr.op[0]));
             }
+            break;
+        case CALL:
+            printf("\t\tCall %s\n", getIdName(p->opr.op[0]));
             break;
         default:
             // if conversion is needed, then it is an up conversion

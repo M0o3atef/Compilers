@@ -8,6 +8,7 @@
 
 /* prototypes */
 nodeType *opr(int oper, int nops, ...);
+nodeType *functionsOpr(nodeType* preFuns, nodeType* newFun);
 nodeType* conFloat(double value);
 nodeType *conInt(int value);
 nodeType* conString(char* value);
@@ -43,7 +44,7 @@ symbolEntry* sym[MAXNUMOFSYMS];                    /* symbol table */
 %token <fValue> FLOATNUM
 %token <sValue> QUOTESTRING
 %token <varName> IDENTIFIER
-%token WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT IF PRINT DEF AS VAR CONST INT FLOAT STRING FUN BODY
+%token WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT IF PRINT DEF AS VAR CONST INT FLOAT STRING FUN BODY FUNCTIONS CALL
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -52,12 +53,17 @@ symbolEntry* sym[MAXNUMOFSYMS];                    /* symbol table */
 %left '*' '/'
 %left '&' '|'
 
-%type <nPtr> stmt expr stmt_list case_stmt case_list defult_stmt logic_list logic_expr err_stmt fun_body function
+%type <nPtr> stmt expr stmt_list case_stmt case_list defult_stmt logic_list logic_expr err_stmt fun_body function functions
 
 %%
 
 program:
-        function                { exMain($1); freeNode($1); exit(0); }
+        functions                { exMain($1); freeNode($1); exit(0); }
+        ;
+
+functions: functions function   { if($1 != NULL) $$ = functionsOpr($1, $2);
+                                  else $$ = opr(FUNCTIONS, 1, $2); }
+        |                       {$$ = NULL;};
         ;
 
 function: DEF IDENTIFIER AS FUN '{' fun_body '}' {$$ = opr(FUN, 2, id(defSym($2, 3, False, True)), $6);};
@@ -65,7 +71,8 @@ function: DEF IDENTIFIER AS FUN '{' fun_body '}' {$$ = opr(FUN, 2, id(defSym($2,
 fun_body:
         fun_body stmt         { if($1 != NULL) $$ = opr(BODY, 2, $1, $2); else  $$ = opr(BODY, 1, $2);}
         | fun_body err_stmt   {}
-        |                     { $$ = NULL;};
+        |                     {$$ = NULL;};
+        ;
 
 err_stmt:
       error ';'                                  { hasNoErrors = False; }
@@ -94,6 +101,7 @@ stmt:
     | IF '(' logic_list ')' stmt %prec IFX       { $$ = opr(IF, 2, $3, $5); }
     | IF '(' logic_list ')' stmt ELSE stmt       { $$ = opr(IF, 3, $3, $5, $7); }
     | '{' stmt_list '}'                          { $$ = $2; }
+    | CALL IDENTIFIER  ';'                       { $$ = opr(CALL, 1, id(getIndex($2))); }
     ;
 
 stmt_list:
@@ -218,7 +226,7 @@ int defSym(char* name, int type, bool isVar, bool isInitialized){
     s->isInitialized = isInitialized;
     s->isUsed = False;
     sym[nextSymNum] = s;
-    fprintf(stderr, "Defined Symbol %s of type %d at index %d\n", s->name, s->type, s->index);
+    //fprintf(stderr, "Defined Symbol %s of type %d at index %d\n", s->name, s->type, s->index);
     nextSymNum++;
     return s->index;
 }
@@ -272,13 +280,13 @@ char* getIdName(nodeType* p){
 
 
 void checkImproperUsage(int oper, int nops, nodeType *p){
-    //LHS and RHS of binary arithmetic and logical operators can't be strings and must be initialized
+    //LHS and RHS of binary arithmetic and logical operators can't be strings nor functions and must be initialized
     if(oper == '*' || oper == '/' || oper == '+' || oper == '-' ||
     oper == '<' || oper == '>' || oper == GE || oper == LE || oper == EQ || oper == NE ||
     oper == '&' || oper == '|'){
         if((p->opr.op[0]->type == typeStringCon) || (p->opr.op[1]->type == typeStringCon) ||
-        (p->opr.op[0]->type == typeId && getIdType(p->opr.op[0]) == 2) ||
-        (p->opr.op[1]->type == typeId && getIdType(p->opr.op[1]) == 2)){
+        (p->opr.op[0]->type == typeId && getIdType(p->opr.op[0]) > 1) ||
+        (p->opr.op[1]->type == typeId && getIdType(p->opr.op[1]) > 1)) {
             if(oper == LE || oper == EQ || oper == NE || oper == GE){
                 char* op = ">=";
                 if(oper == LE)
@@ -287,9 +295,9 @@ void checkImproperUsage(int oper, int nops, nodeType *p){
                     op = "==";
                 else if(oper == NE)
                     op = "!=";
-                printf("line %d: Operator '%s' can't have string on any of its sides\n", yylineno+1, op);
+                printf("line %d: Operator '%s' can't have string nor functions on any of its sides\n", yylineno+1, op);
             }else
-                printf("line %d: Operator '%c' can't have string on any of its sides\n", yylineno+1, oper);
+                printf("line %d: Operator '%c' can't have string nor functions on any of its sides\n", yylineno+1, oper);
             hasNoErrors = False;
         }else if((p->opr.op[0]->type == typeId && isIdInitialized(p->opr.op[0]) == False) ||
         (p->opr.op[1]->type == typeId && isIdInitialized(p->opr.op[1]) == False)){
@@ -307,8 +315,14 @@ void checkImproperUsage(int oper, int nops, nodeType *p){
             hasNoErrors = False;
         }
     }else if(oper == '='){
-        //Constant variables, constant numbers (1, 5.32) and qouteStrings can't be used on LHS
-        if((p->opr.op[0]->type == typeId && isIdVar(p->opr.op[0]) == False) ||
+        // Can't have a function on any of its sides
+        if((p->opr.op[0]->type == typeId && getIdType(p->opr.op[0]) == 3) ||
+            (p->opr.op[1]->type == typeId && getIdType(p->opr.op[1]) == 3)){
+                printf("line %d: Functions can't be on LHS nor RHS of '=' operator\n", yylineno+1);
+                hasNoErrors = False;
+            }
+        //Constant variables, constant numbers (1, 5.32) qouteStrings, and functions can't be used on LHS
+        if((p->opr.op[0]->type == typeId && getIdType(p->opr.op[0]) == 3) ||
         p->opr.op[0]->type == typeStringCon || p->opr.op[0]->type == typeIntCon ||
         p->opr.op[0]->type == typeFloatCon){
             printf("line %d: LHS of '=' must be a variable\n", yylineno+1);
@@ -334,9 +348,20 @@ void checkImproperUsage(int oper, int nops, nodeType *p){
             hasNoErrors = False;
         }
     }else if(oper == PRINT){
+        // Can't have a function as argument
+        if((p->opr.op[0]->type == typeId && getIdType(p->opr.op[0]) == 3)){
+            printf("line %d: Functions can't be an argument for 'PRINT' operator\n", yylineno+1);
+            hasNoErrors = False;
+        }
         // Argument must be initialized if Variable
-        if(p->opr.op[0]->type == typeId && isIdInitialized(p->opr.op[0]) == False){
+        else if(p->opr.op[0]->type == typeId && isIdInitialized(p->opr.op[0]) == False){
             printf("line %d: Argument of operator 'PRINT' must be initialized\n", yylineno+1);
+            hasNoErrors = False;
+        }
+    }else if(oper == CALL){
+        // Must be a function
+        if(p->opr.op[0]->type != typeId || getIdType(p->opr.op[0]) != 3){
+            printf("line %d: Argument of operator 'CALL' must be function name\n", yylineno+1);
             hasNoErrors = False;
         }
     }
@@ -383,6 +408,24 @@ int getNodeLevel(nodeType* p){
     return 2;
 }
 
+nodeType *functionsOpr(nodeType* preFuns, nodeType* newFun){
+    nodeType *p;
+    int i;
+    int nops = 1;
+    nops = preFuns->opr.nops + 1;
+    /* allocate node, extending op array */
+    if ((p = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
+        yyerror("out of memory");
+    /* copy information */
+    p->opr.oper = FUNCTIONS;
+    p->opr.nops = nops;
+    for (i = 0; i < nops-1; i++)
+        p->opr.op[i] = preFuns->opr.op[i];
+    p->opr.op[nops-1] = newFun;
+    //fprintf(stderr, "YACC %d\n", p->opr.nops);
+    return p;
+}
+
 nodeType *opr(int oper, int nops, ...) {
     va_list ap;
     nodeType *p;
@@ -401,8 +444,7 @@ nodeType *opr(int oper, int nops, ...) {
     for (i = 0; i < nops; i++)
         p->opr.op[i] = va_arg(ap, nodeType*);
     va_end(ap);
-
-    if(oper != FUN && oper != BODY && checkIfAllDefined(oper, nops, p) == True){
+    if(oper != FUNCTIONS && oper != FUN && oper != BODY && checkIfAllDefined(oper, nops, p) == True){
         checkImproperUsage(oper, nops, p);
         if(oper == '*' || oper == '/' || oper == '+' || oper == '-' ||
             oper == '>' || oper == '<' || oper == GE || oper == LE || oper == EQ || oper == NE){

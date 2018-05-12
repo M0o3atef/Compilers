@@ -1,5 +1,18 @@
+def z as function {
+def l as int var = 1;
+if(l > 1)
+	print l;
+}
+
+def x as function {
+def y as int var = 1;
+if(y > 1)
+	print z;
+}
+
 def main as function {
+call z ;
 def i as int var = 1;
-if(i > 1)
+if(z > 1)
 	print i;
 }

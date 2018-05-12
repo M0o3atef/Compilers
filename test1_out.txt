@@ -1,0 +1,2 @@
+line 10: Functions can't be an argument for 'PRINT' operator
+line 16: Operator '>' can't have string nor functions on any of its sides

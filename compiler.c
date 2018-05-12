@@ -32,7 +32,6 @@ int exMain(nodeType *p){
         }
     }
     // Print the variables
-    fprintf(stderr, "%d\n", p->opr.nops);
     printf("section .data:\n");
     for (i = 0; i < nextSymNum; i++)
     {
@@ -43,6 +42,33 @@ int exMain(nodeType *p){
         }else if(sym[i]->type == 2){ // String
             printf("\t%s\tTimes 100 DB\n", sym[i]->name);
         }
+    }
+
+    printf("\n\n\n\n\n\nSymbol Table Contents:\n");
+    for (i = 0; i < nextSymNum; i++)
+    {
+        char type[10], isVariable[10], isUsed[20];
+        symbolEntry* s = sym[i];
+        if(s->type == 0)
+            strcpy(type, "int");
+        else if(s->type == 1)
+            strcpy(type, "float");
+        else if(s->type == 2)
+            strcpy(type, "string");
+        else
+            strcpy(type, "function");
+
+        if(s->isVar == True)
+            strcpy(isVariable, "variable");
+        else
+            strcpy(isVariable, "constant");
+
+        if(s->isUsed == True)
+            strcpy(isUsed, "has been used");
+        else
+            strcpy(isUsed, "has not been used");
+
+        printf("\tSymbol %s of type %s stored at index %d is %s and %s\n", s->name, type, s->index, isVariable, isUsed);
     }
     return 0;
 }

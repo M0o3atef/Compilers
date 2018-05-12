@@ -1,0 +1,83 @@
+_start			;tell the linker where to start
+		pushD	1
+		popD	i
+		pushD	i
+		pushD	5
+		compDGT
+		jnz	L000
+	L002:
+		pushD	i
+		pushD	10
+		compDLT
+		jz	L001
+	L003:
+		pushD	i
+		pushD	3
+		compDLT
+		jnz	L000
+	L004:
+		pushD	i
+		pushD	1
+		compDGT
+		jz	L001
+	L000:
+		pushD	i
+		pushD	2
+		mulD
+		popD	i
+		jmp	L005
+	L001:
+		pushD	i
+		pushD	1
+		addD
+		popD	i
+	L005:
+		pushD	i
+		pushD	5
+		mulD
+		pushD	4
+		subD
+		pushD	5
+		compDEQ
+		jz	L007
+		pushS	"hello\0"
+		printS
+		jmp	L006
+	L007:
+		pushD	i
+		pushD	5
+		mulD
+		pushD	4
+		subD
+		pushD	6
+		compDEQ
+		jz	L008
+		pushS	"Hi\0"
+		printS
+		pushD	i
+		pushD	50
+		pushD	4
+		mulD
+		pushD	i
+		divD
+		addD
+		popD	i
+		jmp	L006
+	L008:
+		pushS	"Default\0"
+		printS
+	L006:
+		exit
+
+
+section .data:
+	i	DD
+
+
+
+
+
+
+Symbol Table Contents:
+Symbol i of type int stored at index 0 is variable and has been used
+Symbol main of type function stored at index 1 is constant and has not been used

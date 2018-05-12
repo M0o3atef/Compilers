@@ -1,0 +1,226 @@
+section .data:
+	x	DD
+	my_name	Times 100 DB
+	y	DQ
+	l	DD
+	i	DD
+
+
+section .code:
+		pushD	0
+		popD	x
+		pushS	"mohamed atef\0"
+		popS	my_name
+		pushD	5
+		convDQ
+		popQ	y
+	L000:
+		pushD	x
+		pushD	3
+		addD
+		convDQ
+		pushQ	y
+		compQLE
+		jz	L002
+	L001:
+		pushD	x
+		printD
+		pushD	x
+		pushD	2
+		compDEQ
+		jz	L004
+	L005:
+		pushQ	y
+		pushD	5
+		convDQ
+		compQNE
+		jz	L004
+	L003:
+		pushD	x
+		convDQ
+		pushD	2
+		convDQ
+		pushQ	5.000000
+		addQ
+		mulQ
+		pushQ	y
+		divQ
+		popQ	y
+		jmp	L006
+	L004:
+		pushD	x
+		pushD	1
+		addD
+		popQ	y
+		pushQ	y
+		pushD	5
+		convDQ
+		addQ
+		convQD
+		popD	x
+	L006:
+		pushQ	y
+		pushD	1
+		convDQ
+		compQLT
+		jz	L008
+	L007:
+		pushD	0
+		popD	x
+		pushS	"Hello\0"
+		popS	my_name
+		pushD	10
+		popD	l
+	L008:
+		pushS	"Say Hello\0"
+		printS
+		jmp	L000
+	L002:
+		pushD	1
+		popD	i
+	L009:
+		pushD	i
+		printD
+		pushD	i
+		convDQ
+		pushQ	5.000000
+		compQLT
+		jnz	L009
+	L011:
+		pushD	i
+		pushD	10
+		compDLT
+		jz	L012
+	L013:
+		pushD	i
+		pushD	3
+		compDLT
+		jnz	L009
+	L012:
+		pushD	i
+		pushD	1
+		compDGT
+		jz	L010
+		jmp	L009
+	L010:
+		pushD	1
+		popD	i
+	L014:
+		pushD	i
+		pushD	5
+		compDLT
+		jz	L016
+	L015:
+		pushD	i
+		printD
+		pushD	i
+		pushD	1
+		addD
+		popD	i
+		jmp	L014
+	L016:
+		pushD	i
+		printD
+		pushD	i
+		pushD	5
+		mulD
+		convDQ
+		pushQ	y
+		subQ
+		pushD	5
+		convDQ
+		compQEQ
+		jz	L018
+		pushQ	y
+		pushQ	5.000000
+		compQEQ
+		jz	L020
+		pushQ	y
+		pushD	1
+		convDQ
+		addQ
+		popQ	y
+		jmp	L019
+	L020:
+		pushQ	y
+		pushD	i
+		pushD	1
+		addD
+		convDQ
+		compQEQ
+		jz	L021
+	L022:
+		pushD	i
+		printD
+		pushD	i
+		pushD	5
+		compDLT
+		jz	L023
+		jmp	L022
+	L023:
+		jmp	L019
+	L021:
+		pushS	"Done\0"
+		printS
+	L019:
+		pushS	"hello\0"
+		printS
+		jmp	L017
+	L018:
+		pushD	i
+		pushD	5
+		mulD
+		convDQ
+		pushQ	y
+		subQ
+		pushD	6
+		convDQ
+		compQEQ
+		jz	L024
+		pushQ	y
+		pushD	5
+		convDQ
+		compQEQ
+		jz	L026
+		pushQ	y
+		pushD	1
+		convDQ
+		addQ
+		popQ	y
+		jmp	L025
+	L026:
+		pushQ	y
+		pushD	i
+		pushD	1
+		addD
+		convDQ
+		compQEQ
+		jz	L027
+		pushD	i
+		pushD	5
+		mulD
+		pushD	1
+		subD
+		popQ	y
+		jmp	L025
+	L027:
+	L025:
+		pushS	"Hi\0"
+		printS
+		pushD	i
+		pushD	50
+		pushD	4
+		mulD
+		pushD	210
+		divD
+		addD
+		popD	i
+		jmp	L017
+	L024:
+		pushS	"Default\0"
+		printS
+		pushS	"Done\0"
+		printS
+	L017:
+		pushQ	y
+		printQ

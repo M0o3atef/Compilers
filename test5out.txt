@@ -1,0 +1,24 @@
+section .data:
+	x	DD
+	y	DQ
+
+
+section .code:
+		pushD	0
+		popD	x
+		pushD	5
+		convDQ
+		popQ	y
+		pushQ	y
+		pushD	5
+		pushD	x
+		addD
+		convDQ
+		mulQ
+		pushQ	y
+		pushD	6
+		convDQ
+		addQ
+		divQ
+		convQD
+		popD	x

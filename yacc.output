@@ -1,6 +1,6 @@
 Terminals unused in grammar
 
-   ERROR
+   FUN
 
 
 Grammar
@@ -111,7 +111,7 @@ CONST (274) 15 16 17
 INT (275) 9 12 15
 FLOAT (276) 10 13 16
 STRING (277) 11 14 17
-ERROR (278)
+FUN (278)
 IFX (279)
 ELSE (280) 26
 NE (281) 40

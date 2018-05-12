@@ -4,6 +4,7 @@
 
 static int lbl;
 
+
 int exMain(nodeType *p){
     if(hasNoErrors == False)
         return 0;
@@ -17,7 +18,7 @@ int exMain(nodeType *p){
         }else if (sym[i]->type == 1){ // float
             printf("\t%s\tDQ\n", sym[i]->name);
         }else{ // String
-            printf("\t%s\tDB\n", sym[i]->name);
+            printf("\t%s\tTimes 100 DB\n", sym[i]->name);
         }
     }
     printf("\n\nsection .code:\n");
@@ -33,19 +34,24 @@ int ex(nodeType *p) {
     if (!p) return 0;
     switch(p->type) {
     case typeStringCon:       
-        printf("\t\tpush\t\"%s\"\n", p->con.sValue); 
+        printf("\t\tpushS\t\"%s\\0\"\n", p->con.sValue); 
         //printf("String Constant (%s)\n", p->con.sValue);
         break;
     case typeIntCon:
-        printf("\t\tpush\t%d\n", p->con.iValue);
+        printf("\t\tpushD\t%d\n", p->con.iValue);
         //printf("Int Constant (%d)\n", p->con.iValue);
         break;
     case typeFloatCon:
-        printf("\t\tpush\t%f\n", p->con.fValue);
+        printf("\t\tpushQ\t%f\n", p->con.fValue);
         //printf("Float Constant (%f)\n", p->con.fValue);
         break;
     case typeId:
-        printf("\t\tpush\t%s\n", sym[p->id.i]->name);
+        if(getIdType(p) == 0)
+            printf("\t\tpushD\t%s\n", sym[p->id.i]->name);
+        else if(getIdType(p) == 1)
+            printf("\t\tpushQ\t%s\n", sym[p->id.i]->name);
+        else
+            printf("\t\tpushS\t%s\n", sym[p->id.i]->name);
         //printf("Variable (%s)\n", p->id.i + 'a');
         break;
     case typeOpr:
@@ -106,26 +112,76 @@ int ex(nodeType *p) {
             break;
         case PRINT:
             ex(p->opr.op[0]);
-            printf("\t\tprint\n");
+            if(getNodeLevel(p->opr.op[0]) == 0)
+                printf("\t\tprintD\n");
+            else if(getNodeLevel(p->opr.op[0]) == 1)
+                printf("\t\tprintQ\n");
+            else
+                printf("\t\tprintS\n");
+
             break;
         case '=':
+            //if conversion is needed it is down conversion
             ex(p->opr.op[1]);
-            printf("\t\tpop\t%s\n", sym[p->opr.op[0]->id.i]->name);
+            if(getNodeLevel(p->opr.op[0]) < getNodeLevel(p->opr.op[1]))
+                printf("\t\tconvQD\n"); //convert from Quadrable to Double
+            if(getIdType(p->opr.op[0]) == 0)
+                printf("\t\tpopD\t%s\n", getIdName(p->opr.op[0]));
+            else if(getIdType(p->opr.op[0]) == 1)
+                printf("\t\tpopQ\t%s\n", getIdName(p->opr.op[0]));
+            else
+                printf("\t\tpopS\t%s\n", getIdName(p->opr.op[0]));
             break;
         case DEF:
             if(p->opr.nops == 2){
                 ex(p->opr.op[1]);
-                printf("\t\tpop\t%s\n", sym[p->opr.op[0]->id.i]->name);
+                if(getNodeLevel(p->opr.op[0]) < getNodeLevel(p->opr.op[1]))
+                    printf("\t\tconvQD\n"); //convert from Quadrable to Double
+                else if(getNodeLevel(p->opr.op[0]) > getNodeLevel(p->opr.op[1]))
+                    printf("\t\tconvDQ\n"); //convert from Quadrable to Double
+                if(getIdType(p->opr.op[0]) == 0)
+                    printf("\t\tpopD\t%s\n", getIdName(p->opr.op[0]));
+                else if(getIdType(p->opr.op[0]) == 1)
+                    printf("\t\tpopQ\t%s\n", getIdName(p->opr.op[0]));
+                else
+                    printf("\t\tpopS\t%s\n", getIdName(p->opr.op[0]));
             }
             break;
         default:
+            // if conversion is needed, then it is an up conversion
             ex(p->opr.op[0]);
+            if(p->opr.op[0] != NULL && p->opr.op[1] != NULL &&
+               getNodeLevel(p->opr.op[0]) < getNodeLevel(p->opr.op[1]))
+                printf("\t\tconvDQ\n"); //convert from Double to Quad
             ex(p->opr.op[1]);
+            if(p->opr.op[0] != NULL && p->opr.op[1] != NULL &&
+               getNodeLevel(p->opr.op[0]) > getNodeLevel(p->opr.op[1]))
+                printf("\t\tconvDQ\n"); //convert from Double to Quad
             switch(p->opr.oper) {
-            case '+':   printf("\t\tadd\n"); break;
-            case '-':   printf("\t\tsub\n"); break; 
-            case '*':   printf("\t\tmul\n"); break;
-            case '/':   printf("\t\tdiv\n"); break;
+            case '+':
+                if(getNodeLevel(p) == 0)
+                    printf("\t\taddD\n");
+                else
+                    printf("\t\taddQ\n");
+                break;
+            case '-':
+                if(getNodeLevel(p) == 0)
+                    printf("\t\tsubD\n");
+                else
+                    printf("\t\tsubQ\n");
+                break;
+            case '*':
+                if(getNodeLevel(p) == 0)
+                    printf("\t\tmulD\n");
+                else
+                    printf("\t\tmulQ\n");
+                break;
+            case '/':
+                if(getNodeLevel(p) == 0)
+                    printf("\t\tdivD\n");
+                else
+                    printf("\t\tdivQ\n");
+                break;
             }
         }
     }
@@ -138,8 +194,15 @@ int exCase(nodeType *p, nodeType* switchExpr, int switchLblNum){
         case CASE:
             //case stmt
             ex(switchExpr);
+            if(getNodeLevel(switchExpr) < getNodeLevel(p->opr.op[0]))
+                printf("\t\tconvDQ\n"); //convert from Double to Quad
             ex(p->opr.op[0]);
-            printf("\t\tcompEQ\n");
+            if(getNodeLevel(switchExpr) > getNodeLevel(p->opr.op[0]))
+                printf("\t\tconvDQ\n"); //convert from Double to Quad
+            if(getNodeLevel(switchExpr) == 1 || getNodeLevel(p->opr.op[0]) == 1)
+                printf("\t\tcompQEQ\n");
+            else
+                printf("\t\tcompDEQ\n");
             printf("\t\tjz\tL%03d\n", lbl1 = lbl++);
             ex(p->opr.op[1]);
             printf("\t\tjmp\tL%03d\n", switchLblNum);
@@ -181,15 +244,52 @@ int exCondition(nodeType *p, int jmpToIfFalse, int jmpToIfTrue){
             exCondition(p->opr.op[1], jmpToIfFalse, jmpToIfTrue); // Second Condition
             break;
         default:
+            // if conversion is needed, then it is an up conversion
             ex(p->opr.op[0]);
+            if(p->opr.op[0] != NULL && p->opr.op[1] != NULL &&
+               getNodeLevel(p->opr.op[0]) < getNodeLevel(p->opr.op[1]))
+                printf("\t\tconvDQ\n"); //convert from Double to Quad
             ex(p->opr.op[1]);
+            if(p->opr.op[0] != NULL && p->opr.op[1] != NULL &&
+               getNodeLevel(p->opr.op[0]) > getNodeLevel(p->opr.op[1]))
+                printf("\t\tconvDQ\n"); //convert from Double to Quad
             switch(p->opr.oper) {
-            case '<':   printf("\t\tcompLT\n"); break;
-            case '>':   printf("\t\tcompGT\n"); break;
-            case GE:    printf("\t\tcompGE\n"); break;
-            case LE:    printf("\t\tcompLE\n"); break;
-            case NE:    printf("\t\tcompNE\n"); break;
-            case EQ:    printf("\t\tcompEQ\n"); break;
+            case '<':
+                if(getNodeLevel(p) == 0)
+                    printf("\t\tcompDLT\n");
+                else
+                    printf("\t\tcompQLT\n");
+                break;
+            case '>':
+                if(getNodeLevel(p) == 0)
+                    printf("\t\tcompDGT\n");
+                else
+                    printf("\t\tcompQGT\n");
+                break;
+            case GE:
+                if(getNodeLevel(p) == 0)
+                    printf("\t\tcompDGE\n");
+                else
+                    printf("\t\tcompQGE\n");
+                break;
+            case LE:
+                if(getNodeLevel(p) == 0)
+                    printf("\t\tcompDLE\n");
+                else
+                    printf("\t\tcompQLE\n");
+                break;
+            case NE:
+                if(getNodeLevel(p) == 0)
+                    printf("\t\tcompDNE\n");
+                else
+                    printf("\t\tcompQNE\n");
+                break;
+            case EQ:
+                if(getNodeLevel(p) == 0)
+                    printf("\t\tcompDEQ\n");
+                else
+                    printf("\t\tcompQEQ\n");
+                break;
             }
     }
     return 0;

@@ -17,7 +17,7 @@ void graphDrawArrow(int c1, int l1, int c2, int l2);
 void exNode(nodeType * p, int c, int l, int * ce, int * cm);
 /***********************************************************/
 /* main entry point of the manipulation of the syntax tree */
-int ex(nodeType * p) {
+int exMain(nodeType * p) {
         int rte, rtm;
         graphInit();
         exNode(p, 0, 0, & rte, & rtm);

@@ -15,8 +15,9 @@ int defSym(char* name, int type, bool isVar, bool isInitialized);
 int getIndex(char* varName);
 nodeType *id(int index);
 void freeNode(nodeType *p);
-extern int ex(nodeType *p);
+//extern int ex(nodeType *p);
 extern int exMain(nodeType *p);
+extern FILE *yyin;
 int yylex(void);
 
 void yyerror(char *s);
@@ -108,37 +109,37 @@ case_stmt:
     ;
 
 case_list: 
-        case_stmt                                        { $$ = $1 }
-        |  case_list case_stmt                           { $$ = opr(';', 2, $1, $2) }
-        ;
+    case_stmt                                        { $$ = $1 }
+    |  case_list case_stmt                           { $$ = opr(';', 2, $1, $2) }
+    ;
 
 
 logic_expr:
-          expr '<' expr         { $$ = opr('<', 2, $1, $3); }
-        | expr '>' expr         { $$ = opr('>', 2, $1, $3); }
-        | expr GE expr          { $$ = opr(GE, 2, $1, $3); }
-        | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
-        | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
-        | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
-        | '(' logic_list ')'    { $$ = $2 }
-        ;
+      expr '<' expr         { $$ = opr('<', 2, $1, $3); }
+    | expr '>' expr         { $$ = opr('>', 2, $1, $3); }
+    | expr GE expr          { $$ = opr(GE, 2, $1, $3); }
+    | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
+    | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
+    | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
+    | '(' logic_list ')'    { $$ = $2 }
+    ;
 
 logic_list:
-            logic_expr                  { $$ = $1 }
-        |   logic_list '|' logic_expr   { $$ = opr('|', 2, $1, $3); }
-        |   logic_list '&' logic_expr   { $$ = opr('&', 2, $1, $3); }
-        ;
+        logic_expr                  { $$ = $1 }
+    |   logic_list '|' logic_expr   { $$ = opr('|', 2, $1, $3); }
+    |   logic_list '&' logic_expr   { $$ = opr('&', 2, $1, $3); }
+    ;
 expr:
-          INTNUM                { $$ = conInt($1); }
-        | FLOATNUM              { $$ = conFloat($1); }
-        | QUOTESTRING           { $$ = conString($1); }
-        | IDENTIFIER            { $$ = id(getIndex($1)); }
-        | expr '+' expr         { $$ = opr('+', 2, $1, $3); }
-        | expr '-' expr         { $$ = opr('-', 2, $1, $3); }
-        | expr '*' expr         { $$ = opr('*', 2, $1, $3); }
-        | expr '/' expr         { $$ = opr('/', 2, $1, $3); }
-        | '(' expr ')'          { $$ = $2; }
-        ;
+      INTNUM                { $$ = conInt($1); }
+    | FLOATNUM              { $$ = conFloat($1); }
+    | QUOTESTRING           { $$ = conString($1); }
+    | IDENTIFIER            { $$ = id(getIndex($1)); }
+    | expr '+' expr         { $$ = opr('+', 2, $1, $3); }
+    | expr '-' expr         { $$ = opr('-', 2, $1, $3); }
+    | expr '*' expr         { $$ = opr('*', 2, $1, $3); }
+    | expr '/' expr         { $$ = opr('/', 2, $1, $3); }
+    | '(' expr ')'          { $$ = $2; }
+    ;
 
 %%
 
@@ -212,24 +213,26 @@ int defSym(char* name, int type, bool isVar, bool isInitialized){
     s->type = type;
     s->isVar = isVar;
     s->isInitialized = isInitialized;
+    s->isUsed = False;
     sym[nextSymNum] = s;
-    //printf("Defined Symbol %s of type %d at index %d", s->name, s->type, s->index);
+    //fprintf(stderr, "Defined Symbol %s of type %d at index %d", s->name, s->type, s->index);
     nextSymNum++;
     return s->index;
 }
 
 int getIndex(char* varName){
+    // getIndex is used to use the variable, so if it's called then "isUsed" can be used as True
     char* temp = truncStringAtSpace(varName);
     int i = 0;
     while(i < nextSymNum){
         if(strcmp(sym[i]->name, temp) == 0){
-            //printf("Got %s ", temp);
-            //printf("Found %s ", sym[i]->name);
-            return sym[i]->index;
+            sym[i]->isUsed = True;
+            //fprintf(stderr, "Symbol %s Found at index %d\n", varName, i);
+            return sym[i]->index; 
         }
         i++;
     }
-    //printf("Symbol %s not Found\n", varName);
+    //fprintf(stderr, "Symbol %s not Found\n", varName);
     return -1;
 }
 
@@ -245,7 +248,6 @@ nodeType *id(int index) {
     /* copy information */
     p->type = typeId;
     p->id.i = index;
-
     return p;
 }
 
@@ -328,7 +330,54 @@ void checkImproperUsage(int oper, int nops, nodeType *p){
             printf("line %d: RHS of operator '=' must be initialized\n", yylineno+1);
             hasNoErrors = False;
         }
+    }else if(oper == PRINT){
+        // Argument must be initialized if Variable
+        if(p->opr.op[0]->type == typeId && isIdInitialized(p->opr.op[0]) == False){
+            printf("line %d: Argument of operator 'PRINT' must be initialized\n", yylineno+1);
+            hasNoErrors = False;
+        }
     }
+}
+
+bool checkIfAllDefined(int oper, int nops, nodeType* p){
+    bool Ok = True;
+    int i;
+    if(oper != FUN){
+        for (i = 0; i < nops; i++){
+            if(p->opr.op[i] == NULL){
+                if(oper == LE || oper == EQ || oper == NE || oper == GE || oper == PRINT){
+                    char* op = ">=";
+                    if(oper == LE)
+                        op = "<=";
+                    else if(oper == EQ)
+                        op = "==";
+                    else if(oper == NE)
+                        op = "!=";
+                    else if(oper == PRINT)
+                        op = "Print";
+                    printf("line %d: Operator '%s' has undefined variable on one/both of its sides\n", yylineno+1, op);
+                }else if(oper == '*' || oper == '/' || oper == '+' || oper == '-' || oper == '<' || oper == '>' || oper == '&' || oper == '|' || oper == '=' || oper == PRINT)
+                    printf("line %d: Operator '%c' has undefined variable on one/both of its sides\n", yylineno+1, oper);
+                hasNoErrors = False;
+                Ok = False;
+            }
+        }
+    }
+    return Ok;
+}
+
+int getNodeLevel(nodeType* p){
+    if(p->type == typeIntCon ||
+     (p->type == typeId && getIdType(p) == 0) ||
+     (p->type == typeOpr && p->opr.nodeLevel == 0))
+        return 0;
+
+    if(p->type == typeFloatCon ||
+     (p->type == typeId && getIdType(p) == 1) ||
+     (p->type == typeOpr && p->opr.nodeLevel == 1))
+        return 1;
+
+    return 2;
 }
 
 nodeType *opr(int oper, int nops, ...) {
@@ -339,20 +388,29 @@ nodeType *opr(int oper, int nops, ...) {
     /* allocate node, extending op array */
     if ((p = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
         yyerror("out of memory");
-
     /* copy information */
     p->type = typeOpr;
+    p->opr.nodeLevel = 2; // initially
+
     p->opr.oper = oper;
     p->opr.nops = nops;
     va_start(ap, nops);
     for (i = 0; i < nops; i++)
         p->opr.op[i] = va_arg(ap, nodeType*);
     va_end(ap);
-    checkImproperUsage(oper, nops, p);
-    if(oper == '='){
-        // LHS is now initialized
-        if(p->opr.op[0]->type == typeId)
-            sym[p->opr.op[0]->id.i]->isInitialized = True;
+    if(checkIfAllDefined(oper, nops, p) == True){
+        checkImproperUsage(oper, nops, p);
+        if(oper == '*' || oper == '/' || oper == '+' || oper == '-' ||
+            oper == '>' || oper == '<' || oper == GE || oper == LE || oper == EQ || oper == NE){
+            p->opr.nodeLevel = 0;
+            if(getNodeLevel(p->opr.op[0]) == 1 || getNodeLevel(p->opr.op[1]) == 1)
+                p->opr.nodeLevel = 1;
+        }
+        else if(oper == '='){
+            // LHS is now initialized
+            if(p->opr.op[0]->type == typeId)
+                sym[p->opr.op[0]->id.i]->isInitialized = True;
+        }
     }
     return p;
 }
@@ -372,11 +430,16 @@ void yyerror(char *s) {
     printf("line %d: %s\n", yylineno+1, s);
 }
 
-/*int ex(nodeType * p){
-    printf("Called");
-}*/
-
 int main(void) {
+    // open a file handle to a particular file:
+    yyin = fopen("input.txt", "r");
+    // make sure it is valid:
+    if (!yyin) {
+        fprintf(stderr, "I can't open input.txt!\n");
+        return -1;
+    }
+    
+    // parse through the input until there is no more:
     yyparse();
     return 0;
 }

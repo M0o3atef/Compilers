@@ -1,8 +1,4 @@
-def i as int var;
+def i as int var
 def i as float var = 2.3;
 if(i > 1)
-	print i;
-if((i > 5 & (i < 10 | i < 3)) | i > 1)
-	print i;
-while(i > 5 | i < 3 & i > 10)
 	print i;

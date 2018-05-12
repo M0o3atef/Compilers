@@ -86,8 +86,9 @@ int defSym(char* name, int type, bool isVar, bool isInitialized);
 int getIndex(char* varName);
 nodeType *id(int index);
 void freeNode(nodeType *p);
-extern int ex(nodeType *p);
+//extern int ex(nodeType *p);
 extern int exMain(nodeType *p);
+extern FILE *yyin;
 int yylex(void);
 
 void yyerror(char *s);
@@ -98,7 +99,7 @@ bool hasNoErrors = True;
 
 
 /* Line 189 of yacc.c  */
-#line 102 "yacc.tab.c"
+#line 103 "yacc.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -162,7 +163,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 31 "yacc.y"
+#line 32 "yacc.y"
 
     double fValue;              /* Floating deciamal value */
     int iValue;                 /* integer value */
@@ -173,7 +174,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 177 "yacc.tab.c"
+#line 178 "yacc.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -185,7 +186,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 189 "yacc.tab.c"
+#line 190 "yacc.tab.c"
 
 #ifdef short
 # undef short
@@ -499,12 +500,12 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    57,    57,    61,    62,    63,    67,    68,    69,    70,
-      74,    75,    76,    77,    78,    79,    80,    81,    82,    83,
-      84,    85,    86,    87,    88,    89,    90,    91,    92,    96,
-      97,   101,   105,   106,   107,   111,   112,   117,   118,   119,
-     120,   121,   122,   123,   127,   128,   129,   132,   133,   134,
-     135,   136,   137,   138,   139,   140
+       0,    58,    58,    62,    63,    64,    68,    69,    70,    71,
+      75,    76,    77,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,    97,
+      98,   102,   106,   107,   108,   112,   113,   118,   119,   120,
+     121,   122,   123,   124,   128,   129,   130,   133,   134,   135,
+     136,   137,   138,   139,   140,   141
 };
 #endif
 
@@ -1507,378 +1508,378 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 57 "yacc.y"
+#line 58 "yacc.y"
     { exMain((yyvsp[(1) - (1)].nPtr)); freeNode((yyvsp[(1) - (1)].nPtr)); exit(0); ;}
     break;
 
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 61 "yacc.y"
+#line 62 "yacc.y"
     { (yyval.nPtr) = opr(FUN, 2, (yyvsp[(1) - (2)].nPtr), (yyvsp[(2) - (2)].nPtr)); ;}
     break;
 
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 62 "yacc.y"
+#line 63 "yacc.y"
     {;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 67 "yacc.y"
+#line 68 "yacc.y"
     { hasNoErrors = False; ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 68 "yacc.y"
+#line 69 "yacc.y"
     { hasNoErrors = False; ;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 69 "yacc.y"
+#line 70 "yacc.y"
     { hasNoErrors = False; ;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 70 "yacc.y"
+#line 71 "yacc.y"
     { hasNoErrors = False; ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 74 "yacc.y"
+#line 75 "yacc.y"
     { (yyval.nPtr) = opr(DEF, 2, id(defSym((yyvsp[(2) - (8)].varName), 0, True, True)), (yyvsp[(7) - (8)].nPtr)); ;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 75 "yacc.y"
+#line 76 "yacc.y"
     { (yyval.nPtr) = opr(DEF, 2, id(defSym((yyvsp[(2) - (8)].varName), 1, True, True)), (yyvsp[(7) - (8)].nPtr)); ;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 76 "yacc.y"
+#line 77 "yacc.y"
     { (yyval.nPtr) = opr(DEF, 2, id(defSym((yyvsp[(2) - (8)].varName), 2, True, True)), (yyvsp[(7) - (8)].nPtr)); ;}
     break;
 
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 77 "yacc.y"
+#line 78 "yacc.y"
     { (yyval.nPtr) = opr(DEF, 1, id(defSym((yyvsp[(2) - (6)].varName), 0, True, False))); ;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 78 "yacc.y"
+#line 79 "yacc.y"
     { (yyval.nPtr) = opr(DEF, 1, id(defSym((yyvsp[(2) - (6)].varName), 1, True, False))); ;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 79 "yacc.y"
+#line 80 "yacc.y"
     { (yyval.nPtr) = opr(DEF, 1, id(defSym((yyvsp[(2) - (6)].varName), 2, True, False))); ;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 80 "yacc.y"
+#line 81 "yacc.y"
     { (yyval.nPtr) = opr(DEF, 2, id(defSym((yyvsp[(2) - (8)].varName), 0, False, True)), (yyvsp[(7) - (8)].nPtr)); ;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 81 "yacc.y"
+#line 82 "yacc.y"
     { (yyval.nPtr) = opr(DEF, 2, id(defSym((yyvsp[(2) - (8)].varName), 1, False, True)), (yyvsp[(7) - (8)].nPtr)); ;}
     break;
 
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 82 "yacc.y"
+#line 83 "yacc.y"
     { (yyval.nPtr) = opr(DEF, 2, id(defSym((yyvsp[(2) - (8)].varName), 2, False, True)), (yyvsp[(7) - (8)].nPtr)); ;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 83 "yacc.y"
+#line 84 "yacc.y"
     { (yyval.nPtr) = opr(';', 2, NULL, NULL); ;}
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 84 "yacc.y"
+#line 85 "yacc.y"
     { (yyval.nPtr) = opr(PRINT, 1, (yyvsp[(2) - (3)].nPtr)); ;}
     break;
 
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 85 "yacc.y"
+#line 86 "yacc.y"
     { (yyval.nPtr) = opr('=', 2, id(getIndex((yyvsp[(1) - (4)].varName))), (yyvsp[(3) - (4)].nPtr)); ;}
     break;
 
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 86 "yacc.y"
+#line 87 "yacc.y"
     { (yyval.nPtr) = opr(WHILE, 2, (yyvsp[(3) - (5)].nPtr), (yyvsp[(5) - (5)].nPtr)); ;}
     break;
 
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 87 "yacc.y"
+#line 88 "yacc.y"
     { (yyval.nPtr) = opr(FOR, 4, (yyvsp[(3) - (8)].nPtr), (yyvsp[(4) - (8)].nPtr), (yyvsp[(6) - (8)].nPtr), (yyvsp[(8) - (8)].nPtr)); ;}
     break;
 
   case 24:
 
 /* Line 1455 of yacc.c  */
-#line 88 "yacc.y"
+#line 89 "yacc.y"
     { (yyval.nPtr) = opr(REPEAT, 2, (yyvsp[(5) - (7)].nPtr), (yyvsp[(2) - (7)].nPtr)); ;}
     break;
 
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 89 "yacc.y"
+#line 90 "yacc.y"
     { (yyval.nPtr) = opr(SWITCH, 2, (yyvsp[(3) - (5)].nPtr), (yyvsp[(5) - (5)].nPtr)); ;}
     break;
 
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 90 "yacc.y"
+#line 91 "yacc.y"
     { (yyval.nPtr) = opr(IF, 2, (yyvsp[(3) - (5)].nPtr), (yyvsp[(5) - (5)].nPtr)); ;}
     break;
 
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 91 "yacc.y"
+#line 92 "yacc.y"
     { (yyval.nPtr) = opr(IF, 3, (yyvsp[(3) - (7)].nPtr), (yyvsp[(5) - (7)].nPtr), (yyvsp[(7) - (7)].nPtr)); ;}
     break;
 
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 92 "yacc.y"
+#line 93 "yacc.y"
     { (yyval.nPtr) = (yyvsp[(2) - (3)].nPtr); ;}
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 96 "yacc.y"
+#line 97 "yacc.y"
     { (yyval.nPtr) = (yyvsp[(1) - (1)].nPtr); ;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 97 "yacc.y"
+#line 98 "yacc.y"
     { (yyval.nPtr) = opr(';', 2, (yyvsp[(1) - (2)].nPtr), (yyvsp[(2) - (2)].nPtr)); ;}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 101 "yacc.y"
+#line 102 "yacc.y"
     { (yyval.nPtr) = opr(DEFAULT, 1, (yyvsp[(2) - (2)].nPtr)) ;}
     break;
 
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 105 "yacc.y"
+#line 106 "yacc.y"
     { (yyval.nPtr) = opr(CASE, 2, (yyvsp[(3) - (5)].nPtr), (yyvsp[(5) - (5)].nPtr)); ;}
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 106 "yacc.y"
+#line 107 "yacc.y"
     { (yyval.nPtr) = (yyvsp[(2) - (3)].nPtr); ;}
     break;
 
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 107 "yacc.y"
+#line 108 "yacc.y"
     { (yyval.nPtr) = opr(';', 2, (yyvsp[(2) - (4)].nPtr), (yyvsp[(3) - (4)].nPtr)) ;}
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 111 "yacc.y"
+#line 112 "yacc.y"
     { (yyval.nPtr) = (yyvsp[(1) - (1)].nPtr) ;}
     break;
 
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 112 "yacc.y"
+#line 113 "yacc.y"
     { (yyval.nPtr) = opr(';', 2, (yyvsp[(1) - (2)].nPtr), (yyvsp[(2) - (2)].nPtr)) ;}
     break;
 
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 117 "yacc.y"
+#line 118 "yacc.y"
     { (yyval.nPtr) = opr('<', 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 118 "yacc.y"
+#line 119 "yacc.y"
     { (yyval.nPtr) = opr('>', 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 119 "yacc.y"
+#line 120 "yacc.y"
     { (yyval.nPtr) = opr(GE, 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 120 "yacc.y"
+#line 121 "yacc.y"
     { (yyval.nPtr) = opr(LE, 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 121 "yacc.y"
+#line 122 "yacc.y"
     { (yyval.nPtr) = opr(NE, 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 122 "yacc.y"
+#line 123 "yacc.y"
     { (yyval.nPtr) = opr(EQ, 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 123 "yacc.y"
+#line 124 "yacc.y"
     { (yyval.nPtr) = (yyvsp[(2) - (3)].nPtr) ;}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 127 "yacc.y"
+#line 128 "yacc.y"
     { (yyval.nPtr) = (yyvsp[(1) - (1)].nPtr) ;}
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 128 "yacc.y"
+#line 129 "yacc.y"
     { (yyval.nPtr) = opr('|', 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 129 "yacc.y"
+#line 130 "yacc.y"
     { (yyval.nPtr) = opr('&', 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 132 "yacc.y"
+#line 133 "yacc.y"
     { (yyval.nPtr) = conInt((yyvsp[(1) - (1)].iValue)); ;}
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 133 "yacc.y"
+#line 134 "yacc.y"
     { (yyval.nPtr) = conFloat((yyvsp[(1) - (1)].fValue)); ;}
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 134 "yacc.y"
+#line 135 "yacc.y"
     { (yyval.nPtr) = conString((yyvsp[(1) - (1)].sValue)); ;}
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 135 "yacc.y"
+#line 136 "yacc.y"
     { (yyval.nPtr) = id(getIndex((yyvsp[(1) - (1)].varName))); ;}
     break;
 
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 136 "yacc.y"
+#line 137 "yacc.y"
     { (yyval.nPtr) = opr('+', 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 137 "yacc.y"
+#line 138 "yacc.y"
     { (yyval.nPtr) = opr('-', 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 138 "yacc.y"
+#line 139 "yacc.y"
     { (yyval.nPtr) = opr('*', 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 139 "yacc.y"
+#line 140 "yacc.y"
     { (yyval.nPtr) = opr('/', 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); ;}
     break;
 
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 140 "yacc.y"
+#line 141 "yacc.y"
     { (yyval.nPtr) = (yyvsp[(2) - (3)].nPtr); ;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1882 "yacc.tab.c"
+#line 1883 "yacc.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2090,7 +2091,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 143 "yacc.y"
+#line 144 "yacc.y"
 
 
 nodeType* conFloat(double value){
@@ -2163,24 +2164,26 @@ int defSym(char* name, int type, bool isVar, bool isInitialized){
     s->type = type;
     s->isVar = isVar;
     s->isInitialized = isInitialized;
+    s->isUsed = False;
     sym[nextSymNum] = s;
-    //printf("Defined Symbol %s of type %d at index %d", s->name, s->type, s->index);
+    //fprintf(stderr, "Defined Symbol %s of type %d at index %d", s->name, s->type, s->index);
     nextSymNum++;
     return s->index;
 }
 
 int getIndex(char* varName){
+    // getIndex is used to use the variable, so if it's called then "isUsed" can be used as True
     char* temp = truncStringAtSpace(varName);
     int i = 0;
     while(i < nextSymNum){
         if(strcmp(sym[i]->name, temp) == 0){
-            //printf("Got %s ", temp);
-            //printf("Found %s ", sym[i]->name);
-            return sym[i]->index;
+            sym[i]->isUsed = True;
+            //fprintf(stderr, "Symbol %s Found at index %d\n", varName, i);
+            return sym[i]->index; 
         }
         i++;
     }
-    //printf("Symbol %s not Found\n", varName);
+    //fprintf(stderr, "Symbol %s not Found\n", varName);
     return -1;
 }
 
@@ -2196,7 +2199,6 @@ nodeType *id(int index) {
     /* copy information */
     p->type = typeId;
     p->id.i = index;
-
     return p;
 }
 
@@ -2279,7 +2281,54 @@ void checkImproperUsage(int oper, int nops, nodeType *p){
             printf("line %d: RHS of operator '=' must be initialized\n", yylineno+1);
             hasNoErrors = False;
         }
+    }else if(oper == PRINT){
+        // Argument must be initialized if Variable
+        if(p->opr.op[0]->type == typeId && isIdInitialized(p->opr.op[0]) == False){
+            printf("line %d: Argument of operator 'PRINT' must be initialized\n", yylineno+1);
+            hasNoErrors = False;
+        }
     }
+}
+
+bool checkIfAllDefined(int oper, int nops, nodeType* p){
+    bool Ok = True;
+    int i;
+    if(oper != FUN){
+        for (i = 0; i < nops; i++){
+            if(p->opr.op[i] == NULL){
+                if(oper == LE || oper == EQ || oper == NE || oper == GE || oper == PRINT){
+                    char* op = ">=";
+                    if(oper == LE)
+                        op = "<=";
+                    else if(oper == EQ)
+                        op = "==";
+                    else if(oper == NE)
+                        op = "!=";
+                    else if(oper == PRINT)
+                        op = "Print";
+                    printf("line %d: Operator '%s' has undefined variable on one/both of its sides\n", yylineno+1, op);
+                }else if(oper == '*' || oper == '/' || oper == '+' || oper == '-' || oper == '<' || oper == '>' || oper == '&' || oper == '|' || oper == '=' || oper == PRINT)
+                    printf("line %d: Operator '%c' has undefined variable on one/both of its sides\n", yylineno+1, oper);
+                hasNoErrors = False;
+                Ok = False;
+            }
+        }
+    }
+    return Ok;
+}
+
+int getNodeLevel(nodeType* p){
+    if(p->type == typeIntCon ||
+     (p->type == typeId && getIdType(p) == 0) ||
+     (p->type == typeOpr && p->opr.nodeLevel == 0))
+        return 0;
+
+    if(p->type == typeFloatCon ||
+     (p->type == typeId && getIdType(p) == 1) ||
+     (p->type == typeOpr && p->opr.nodeLevel == 1))
+        return 1;
+
+    return 2;
 }
 
 nodeType *opr(int oper, int nops, ...) {
@@ -2290,20 +2339,29 @@ nodeType *opr(int oper, int nops, ...) {
     /* allocate node, extending op array */
     if ((p = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
         yyerror("out of memory");
-
     /* copy information */
     p->type = typeOpr;
+    p->opr.nodeLevel = 2; // initially
+
     p->opr.oper = oper;
     p->opr.nops = nops;
     va_start(ap, nops);
     for (i = 0; i < nops; i++)
         p->opr.op[i] = va_arg(ap, nodeType*);
     va_end(ap);
-    checkImproperUsage(oper, nops, p);
-    if(oper == '='){
-        // LHS is now initialized
-        if(p->opr.op[0]->type == typeId)
-            sym[p->opr.op[0]->id.i]->isInitialized = True;
+    if(checkIfAllDefined(oper, nops, p) == True){
+        checkImproperUsage(oper, nops, p);
+        if(oper == '*' || oper == '/' || oper == '+' || oper == '-' ||
+            oper == '>' || oper == '<' || oper == GE || oper == LE || oper == EQ || oper == NE){
+            p->opr.nodeLevel = 0;
+            if(getNodeLevel(p->opr.op[0]) == 1 || getNodeLevel(p->opr.op[1]) == 1)
+                p->opr.nodeLevel = 1;
+        }
+        else if(oper == '='){
+            // LHS is now initialized
+            if(p->opr.op[0]->type == typeId)
+                sym[p->opr.op[0]->id.i]->isInitialized = True;
+        }
     }
     return p;
 }
@@ -2323,11 +2381,16 @@ void yyerror(char *s) {
     printf("line %d: %s\n", yylineno+1, s);
 }
 
-/*int ex(nodeType * p){
-    printf("Called");
-}*/
-
 int main(void) {
+    // open a file handle to a particular file:
+    yyin = fopen("input.txt", "r");
+    // make sure it is valid:
+    if (!yyin) {
+        fprintf(stderr, "I can't open input.txt!\n");
+        return -1;
+    }
+    
+    // parse through the input until there is no more:
     yyparse();
     return 0;
 }

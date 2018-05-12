@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "definitions.h"
 #include "yacc.tab.h"
+#include <string.h>
 
 static int lbl;
 
@@ -22,6 +23,17 @@ int exMain(nodeType *p){
         }
     }
     printf("\n\nsection .code:\n");
+    /*char needToFind[5];
+    strcpy(needToFind, "main");
+    for (i = 0; i < p->opr.nops; i++){
+        if(p->opr.op[0]->type == typeStringCon)
+            fprintf(stderr, "%s\n", p->opr.op[0]->con.sValue);
+        else
+            fprintf(stderr, "%d\n", p->opr.op[0]->type);
+
+        if(strcmp(p->opr.op[0]->con.sValue, needToFind) == 0)
+            ex(p);
+    }*/
     ex(p);
     return 0;
 }

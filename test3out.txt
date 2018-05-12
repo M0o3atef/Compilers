@@ -1,0 +1,31 @@
+section .data:
+	i	DD
+
+
+section .code:
+		pushD	1
+		popD	i
+	L000:
+		pushD	i
+		printD
+		pushD	i
+		pushD	5
+		compDGT
+		jnz	L002
+	L003:
+		pushD	i
+		pushD	10
+		compDLT
+		jz	L001
+	L002:
+		pushD	i
+		pushD	3
+		compDLT
+		jnz	L000
+	L004:
+		pushD	i
+		pushD	1
+		compDGT
+		jz	L001
+		jmp	L000
+	L001:

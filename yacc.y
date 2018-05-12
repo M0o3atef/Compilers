@@ -59,10 +59,9 @@ program:
         ;
 
 function:
-          function stmt         { $$ = opr(FUN, 2, $1, $2); }
-        | function err_stmt     {}
-        | /* NULL */
-        ;
+        function stmt         { $$ = opr(FUN, 2, $1, $2); }
+        | function err_stmt            {};
+        | ;
 
 err_stmt:
       error ';'                                  { hasNoErrors = False; }
@@ -432,12 +431,12 @@ void yyerror(char *s) {
 
 int main(void) {
     // open a file handle to a particular file:
-    yyin = fopen("input.txt", "r");
+    /*yyin = fopen("input.txt", "r");
     // make sure it is valid:
     if (!yyin) {
         fprintf(stderr, "I can't open input.txt!\n");
         return -1;
-    }
+    }*/
     
     // parse through the input until there is no more:
     yyparse();

@@ -1,24 +1,5 @@
-section .data:
-	x	DD
-	y	DQ
-
-
-section .code:
-		pushD	0
-		popD	x
-		pushD	5
-		convDQ
-		popQ	y
-		pushQ	y
-		pushD	5
-		pushD	x
-		addD
-		convDQ
-		mulQ
-		pushQ	y
-		pushD	6
-		convDQ
-		addQ
-		divQ
-		convQD
-		popD	x
+line 2: syntax error, unexpected DEF
+line 3: Operator '+' has undefined variable on one/both of its sides
+line 3: Operator '*' has undefined variable on one/both of its sides
+line 3: Operator '+' has undefined variable on one/both of its sides
+line 3: Operator '=' has undefined variable on one/both of its sides

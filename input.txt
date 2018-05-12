@@ -1,4 +1,5 @@
-{def x as int var = 0;
+{
+def x as int var = 0;
 def my_name as string var = "mohamed atef";
 def y as float var = 5;
 while (x+3 <= y) {

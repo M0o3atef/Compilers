@@ -29,6 +29,7 @@ void yyerror(char *);
 "int"           { return INT; }
 "float"         { return FLOAT; }
 "string"        { return STRING; }
+"function"      { return FUN; }
 [ \t]+          {;}       /* ignore whitespace */
 [\n]            {yylineno += 1;}
 [-()<>=+*/;:{}&|.] { return *yytext; }

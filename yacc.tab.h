@@ -60,12 +60,13 @@
      FLOAT = 276,
      STRING = 277,
      FUN = 278,
-     IFX = 279,
-     ELSE = 280,
-     NE = 281,
-     EQ = 282,
-     LE = 283,
-     GE = 284
+     BODY = 279,
+     IFX = 280,
+     ELSE = 281,
+     NE = 282,
+     EQ = 283,
+     LE = 284,
+     GE = 285
    };
 #endif
 
@@ -76,7 +77,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 32 "yacc.y"
+#line 34 "yacc.y"
 
     double fValue;              /* Floating deciamal value */
     int iValue;                 /* integer value */
@@ -87,7 +88,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 91 "yacc.tab.h"
+#line 92 "yacc.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

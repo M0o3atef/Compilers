@@ -1,3 +1,5 @@
-def x as int var = 0
+def main as function {
+def x as int var = 0;
 def y as float var = 5;
 x = y*(5+x)/(y+6);
+}

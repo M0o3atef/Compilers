@@ -48,7 +48,7 @@ typedef struct nodeTypeTag {
 typedef struct{
     char* name;
     int index;
-    int type; // 0 int, 1 float, 2 string
+    int type; // 0 int, 1 float, 2 string, 3 function
     bool isVar; // false const, true variable
     bool isInitialized; // false const, true variable
     bool isUsed;

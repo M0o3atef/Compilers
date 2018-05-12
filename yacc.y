@@ -21,10 +21,12 @@ extern FILE *yyin;
 int yylex(void);
 
 void yyerror(char *s);
-symbolEntry* sym[MAXNUMOFSYMS];                    /* symbol table */
+
 int nextSymNum = 0;
 int yydebug=1;
 bool hasNoErrors = True;
+
+symbolEntry* sym[MAXNUMOFSYMS];                    /* symbol table */
 %}
 
 %error-verbose
@@ -41,7 +43,7 @@ bool hasNoErrors = True;
 %token <fValue> FLOATNUM
 %token <sValue> QUOTESTRING
 %token <varName> IDENTIFIER
-%token WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT IF PRINT DEF AS VAR CONST INT FLOAT STRING FUN
+%token WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT IF PRINT DEF AS VAR CONST INT FLOAT STRING FUN BODY
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -50,7 +52,7 @@ bool hasNoErrors = True;
 %left '*' '/'
 %left '&' '|'
 
-%type <nPtr> stmt expr stmt_list case_stmt case_list defult_stmt logic_list logic_expr err_stmt function
+%type <nPtr> stmt expr stmt_list case_stmt case_list defult_stmt logic_list logic_expr err_stmt fun_body function
 
 %%
 
@@ -58,10 +60,12 @@ program:
         function                { exMain($1); freeNode($1); exit(0); }
         ;
 
-function:
-        function stmt         { $$ = opr(FUN, 2, $1, $2); }
-        | function err_stmt            {};
-        | ;
+function: DEF IDENTIFIER AS FUN '{' fun_body '}' {$$ = opr(FUN, 2, id(defSym($2, 3, False, True)), $6);};
+
+fun_body:
+        fun_body stmt         { if($1 != NULL) $$ = opr(BODY, 2, $1, $2); else  $$ = opr(BODY, 1, $2);}
+        | fun_body err_stmt   {}
+        |                     { $$ = NULL;};
 
 err_stmt:
       error ';'                                  { hasNoErrors = False; }
@@ -214,7 +218,7 @@ int defSym(char* name, int type, bool isVar, bool isInitialized){
     s->isInitialized = isInitialized;
     s->isUsed = False;
     sym[nextSymNum] = s;
-    //fprintf(stderr, "Defined Symbol %s of type %d at index %d", s->name, s->type, s->index);
+    fprintf(stderr, "Defined Symbol %s of type %d at index %d\n", s->name, s->type, s->index);
     nextSymNum++;
     return s->index;
 }
@@ -341,7 +345,7 @@ void checkImproperUsage(int oper, int nops, nodeType *p){
 bool checkIfAllDefined(int oper, int nops, nodeType* p){
     bool Ok = True;
     int i;
-    if(oper != FUN){
+    if(oper != FUN && oper != BODY){
         for (i = 0; i < nops; i++){
             if(p->opr.op[i] == NULL){
                 if(oper == LE || oper == EQ || oper == NE || oper == GE || oper == PRINT){
@@ -397,7 +401,8 @@ nodeType *opr(int oper, int nops, ...) {
     for (i = 0; i < nops; i++)
         p->opr.op[i] = va_arg(ap, nodeType*);
     va_end(ap);
-    if(checkIfAllDefined(oper, nops, p) == True){
+
+    if(oper != FUN && oper != BODY && checkIfAllDefined(oper, nops, p) == True){
         checkImproperUsage(oper, nops, p);
         if(oper == '*' || oper == '/' || oper == '+' || oper == '-' ||
             oper == '>' || oper == '<' || oper == GE || oper == LE || oper == EQ || oper == NE){
@@ -420,7 +425,8 @@ void freeNode(nodeType *p) {
     if (!p) return;
     if (p->type == typeOpr) {
         for (i = 0; i < p->opr.nops; i++)
-            freeNode(p->opr.op[i]);
+            if(p->opr.op[i])
+                freeNode(p->opr.op[i]);
     }
     free (p);
 }
@@ -431,12 +437,12 @@ void yyerror(char *s) {
 
 int main(void) {
     // open a file handle to a particular file:
-    yyin = fopen("input.txt", "r");
+    /*yyin = fopen("input.txt", "r");
     // make sure it is valid:
     if (!yyin) {
         fprintf(stderr, "I can't open input.txt!\n");
         return -1;
-    }
+    }*/
     
     // parse through the input until there is no more:
     yyparse();

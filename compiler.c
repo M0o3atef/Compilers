@@ -9,7 +9,7 @@ static int lbl;
 int exMain(nodeType *p){
     if(hasNoErrors == False)
         return 0;
-    if (!p) return 0;
+    if (!p->opr.op[1]) return 0;
     int i;
     printf("section .data:\n");
     for (i = 0; i < nextSymNum; i++)
@@ -18,7 +18,7 @@ int exMain(nodeType *p){
             printf("\t%s\tDD\n", sym[i]->name);
         }else if (sym[i]->type == 1){ // float
             printf("\t%s\tDQ\n", sym[i]->name);
-        }else{ // String
+        }else if(sym[i]->type == 2){ // String
             printf("\t%s\tTimes 100 DB\n", sym[i]->name);
         }
     }
@@ -34,7 +34,7 @@ int exMain(nodeType *p){
         if(strcmp(p->opr.op[0]->con.sValue, needToFind) == 0)
             ex(p);
     }*/
-    ex(p);
+    ex(p->opr.op[1]);
     return 0;
 }
 
@@ -45,7 +45,7 @@ int ex(nodeType *p) {
 
     if (!p) return 0;
     switch(p->type) {
-    case typeStringCon:       
+    case typeStringCon:
         printf("\t\tpushS\t\"%s\\0\"\n", p->con.sValue); 
         //printf("String Constant (%s)\n", p->con.sValue);
         break;
@@ -68,6 +68,11 @@ int ex(nodeType *p) {
         break;
     case typeOpr:
         switch(p->opr.oper) {
+        case BODY:
+            ex(p->opr.op[0]);
+            if(p->opr.nops == 2)
+                ex(p->opr.op[1]);
+            break;
         case WHILE:
             printf("\tL%03d:\n", lbl1 = lbl++);
             //printf("While Loop, Condition: \n");

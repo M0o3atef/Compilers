@@ -114,16 +114,15 @@ _start			;tell the linker where to start
 		pushD	i
 		printD
 		pushD	i
+		convDQ
 		pushD	5
-		mulD
 		convDQ
 		pushQ	y
-		subQ
-		pushD	5
-		convDQ
+		mulQ
 		compQEQ
 		jz	L018
-		pushQ	y
+		pushD	x
+		convDQ
 		pushQ	5.000000
 		compQEQ
 		jz	L020
@@ -134,12 +133,11 @@ _start			;tell the linker where to start
 		popQ	y
 		jmp	L019
 	L020:
-		pushQ	y
+		pushD	x
 		pushD	i
 		pushD	1
 		addD
-		convDQ
-		compQEQ
+		compDEQ
 		jz	L021
 	L022:
 		pushD	i
@@ -160,18 +158,12 @@ _start			;tell the linker where to start
 		jmp	L017
 	L018:
 		pushD	i
-		pushD	5
-		mulD
-		convDQ
-		pushQ	y
-		subQ
 		pushD	6
-		convDQ
-		compQEQ
+		compDEQ
 		jz	L024
-		pushQ	y
-		pushD	5
+		pushD	x
 		convDQ
+		pushQ	y
 		compQEQ
 		jz	L026
 		pushQ	y
@@ -181,12 +173,11 @@ _start			;tell the linker where to start
 		popQ	y
 		jmp	L025
 	L026:
-		pushQ	y
+		pushD	x
 		pushD	i
 		pushD	1
 		addD
-		convDQ
-		compQEQ
+		compDEQ
 		jz	L027
 		pushD	i
 		pushD	5
@@ -234,7 +225,7 @@ section .data:
 Symbol Table Contents:
 	Symbol x of type int stored at index 0 is variable and has been used
 	Symbol my_name of type string stored at index 1 is variable and has been used
-	Symbol y of type float stored at index 2 is variable and has been used
+	Symbol y of type float stored at index 2 is constant and has been used
 	Symbol l of type int stored at index 3 is variable and has not been used
 	Symbol i of type int stored at index 4 is variable and has been used
 	Symbol main of type function stored at index 5 is constant and has not been used

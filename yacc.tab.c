@@ -2356,6 +2356,20 @@ void checkImproperUsage(int oper, int nops, nodeType *p){
             printf("line %d: Argument of operator 'CALL' must be function name\n", yylineno+1);
             hasNoErrors = False;
         }
+    }else if(oper == SWITCH){
+        // the deciding expression can't be a constant nor a string nor function
+        if(p->opr.op[0]->type != typeOpr && 
+            (p->opr.op[0]->type != typeId ||
+                getIdType(p->opr.op[0]) > 1 || isIdVar(p->opr.op[0]) == False)) {
+                printf("line %d: Deciding expression of operator 'Switch' is allowed only to have combination of ints and floats variables.\n", yylineno+1);
+                hasNoErrors = False;
+            }
+    }else if(oper == CASE){
+        if(p->opr.op[0]->type == typeStringCon || 
+            (p->opr.op[0]->type == typeId && getIdType(p->opr.op[0]) > 1)) {
+                printf("line %d: Deciding expression of operator 'Case' is allowed only to have combination of ints and floats.\n", yylineno+1);
+                hasNoErrors = False;
+            }
     }
 }
 
